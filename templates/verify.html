@@ -10,6 +10,10 @@
             <input type="text" name="otp" required maxlength="6">
         </div>
         <button type="submit" class="btn-submit">Verify</button>
+        <div style="margin-top: 1rem; text-align: center;">
+            <p>Didn't receive code? <a href="{{ url_for('resend_otp') }}"
+                    style="color: var(--primary); font-weight: 600;">Resend OTP</a></p>
+        </div>
     </form>
 </div>
 {% endblock %}

@@ -209,6 +209,19 @@ def verify_otp():
             flash('Invalid OTP')
     return render_template('verify.html')
 
+@app.route('/resend-otp')
+def resend_otp():
+    user_id = session.get('user_id_temp')
+    if not user_id:
+        flash('Session expired. Please login again.')
+        return redirect(url_for('login'))
+        
+    user = User.query.get(user_id)
+    if user:
+        send_otp(user)
+        flash('New OTP sent to your email.')
+    return redirect(url_for('verify_otp'))
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
