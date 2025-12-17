@@ -119,7 +119,7 @@ def send_otp(user):
     db.session.commit()
     
     msg = Message('Crop & Carry Verification Code', recipients=[user.email])
-    msg.body = f'Your verification code is {otp}. It is valid for 10 minutes.'
+    msg.body = f'Your verification code is {otp}'
     
     # Send asynchronously
     Thread(target=send_async_email, args=(app, msg)).start()
@@ -197,16 +197,14 @@ def verify_otp():
         user = User.query.get(user_id)
         
         if user and user.otp_code == otp:
-            if user.otp_expiry and user.otp_expiry > datetime.utcnow():
-                user.is_verified = True
-                user.otp_code = None # Clear OTP after usage
-                user.otp_expiry = None
-                db.session.commit()
-                login_user(user)
-                flash('Verified successfully!')
-                return redirect(url_for('dashboard'))
-            else:
-                flash('OTP expired. Please login to request a new one.')
+            # OTP is valid (no time limit check)
+            user.is_verified = True
+            user.otp_code = None # Clear OTP after usage
+            user.otp_expiry = None
+            db.session.commit()
+            login_user(user)
+            flash('Verified successfully!')
+            return redirect(url_for('dashboard'))
         else:
             flash('Invalid OTP')
     return render_template('verify.html')
