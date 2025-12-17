@@ -70,6 +70,7 @@ class Product(db.Model):
     unit = db.Column(db.String(20), default='Count') # Kg, L, Count
     image_url = db.Column(db.Text) # URL to image or Base64 string
     total_sales = db.Column(db.Integer, default=0)
+    is_deleted = db.Column(db.Boolean, default=False)
 
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -138,11 +139,23 @@ def send_receipt(order):
     # Send asynchronously
     Thread(target=send_async_email, args=(app, msg)).start()
 
+def send_cancellation_email(order):
+    msg = Message('Order Cancelled - Crop & Carry', recipients=[order.consumer.email])
+    msg.body = f'''
+    Your order has been cancelled.
+    
+    Order ID: {order.id}
+    Cancelled on: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')}
+    
+    If you have paid via UPI, the refund will be processed within 5-7 business days.
+    '''
+    Thread(target=send_async_email, args=(app, msg)).start()
+
 # Routes
 
 @app.route('/')
 def index():
-    products = Product.query.all()
+    products = Product.query.filter_by(is_deleted=False).all()
     return render_template('market.html', products=products)
 
 @app.route('/signup', methods=['GET', 'POST'])
@@ -221,7 +234,7 @@ def logout():
 @login_required
 def dashboard():
     if current_user.role == 'farmer':
-        products = Product.query.filter_by(farmer_id=current_user.id).all()
+        products = Product.query.filter_by(farmer_id=current_user.id, is_deleted=False).all()
         
         # Optimized Analytics using SQL Aggregation
         stats = db.session.query(
@@ -280,15 +293,11 @@ def delete_product(id):
     if product.farmer_id != current_user.id:
         return 'Unauthorized', 403
     
-    try:
-        db.session.delete(product)
-        db.session.commit()
-        flash('Product deleted successfully')
-    except Exception as e:
-        db.session.rollback()
-        # likely due to foreign key constraint (product in orders)
-        flash('Cannot delete product because it is part of existing orders. Try setting stock to 0 instead.')
-        
+    # Soft delete instead of hard delete to preserve order history
+    product.is_deleted = True
+    db.session.commit()
+    flash('Product deleted successfully')
+    
     return redirect(url_for('dashboard'))
 
 @app.route('/add-to-cart/<int:id>')
