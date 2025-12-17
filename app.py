@@ -55,6 +55,8 @@ class User(UserMixin, db.Model):
     name = db.Column(db.String(100))
     phone = db.Column(db.String(20))
     address = db.Column(db.Text)
+    otp_code = db.Column(db.String(6))
+    otp_expiry = db.Column(db.DateTime)
     
     # Relationships
     # orders relationship removed to avoid ambiguity, defined in Order model
@@ -110,12 +112,14 @@ def send_async_email(app, msg):
         except Exception as e:
             print(f"Error sending email: {e}")
 
-def send_otp(email):
+def send_otp(user):
     otp = ''.join(random.choices(string.digits, k=6))
-    session['otp'] = otp
-    session['otp_email'] = email
-    msg = Message('Crop & Carry Verification Code', recipients=[email])
-    msg.body = f'Your verifiction code is {otp}'
+    user.otp_code = otp
+    user.otp_expiry = datetime.utcnow() + timedelta(minutes=10)
+    db.session.commit()
+    
+    msg = Message('Crop & Carry Verification Code', recipients=[user.email])
+    msg.body = f'Your verification code is {otp}. It is valid for 10 minutes.'
     
     # Send asynchronously
     Thread(target=send_async_email, args=(app, msg)).start()
@@ -175,7 +179,7 @@ def signup():
         db.session.add(new_user)
         db.session.commit()
         
-        send_otp(email)
+        send_otp(new_user)
         session['user_id_temp'] = new_user.id
         return redirect(url_for('verify_otp'))
         
@@ -185,13 +189,24 @@ def signup():
 def verify_otp():
     if request.method == 'POST':
         otp = request.form.get('otp')
-        if otp == session.get('otp'):
-            user = User.query.get(session.get('user_id_temp'))
-            user.is_verified = True
-            db.session.commit()
-            login_user(user)
-            flash('Verified successfully!')
-            return redirect(url_for('dashboard'))
+        user_id = session.get('user_id_temp')
+        if not user_id:
+            flash('Session expired. Please login again.')
+            return redirect(url_for('login'))
+            
+        user = User.query.get(user_id)
+        
+        if user and user.otp_code == otp:
+            if user.otp_expiry and user.otp_expiry > datetime.utcnow():
+                user.is_verified = True
+                user.otp_code = None # Clear OTP after usage
+                user.otp_expiry = None
+                db.session.commit()
+                login_user(user)
+                flash('Verified successfully!')
+                return redirect(url_for('dashboard'))
+            else:
+                flash('OTP expired. Please login to request a new one.')
         else:
             flash('Invalid OTP')
     return render_template('verify.html')
@@ -205,7 +220,7 @@ def login():
         
         if user and check_password_hash(user.password_hash, password):
             if not user.is_verified:
-                 send_otp(user.email)
+                 send_otp(user)
                  session['user_id_temp'] = user.id
                  return redirect(url_for('verify_otp'))
             login_user(user)
