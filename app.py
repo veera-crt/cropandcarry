@@ -286,14 +286,35 @@ def dashboard():
         return render_template('farmer_dashboard.html', products=products, total_sales=total_sales, sales_amount=sales_amount)
     
     elif current_user.role == 'delivery':
-        # Show pending delivery orders
-        available_orders = Order.query.filter_by(status='Ready').all()
+        # Show all open orders (Pending/Ready) that haven't been picked up yet
+        # Once any order is placed (Pending), it is pushed to all delivery partners.
+        available_orders = Order.query.filter(
+            Order.status.in_(['Pending', 'Ready']),
+            Order.delivery_partner_id.is_(None)
+        ).all()
+        
         my_deliveries = Order.query.filter_by(delivery_partner_id=current_user.id).all()
         return render_template('delivery_dashboard.html', available=available_orders, my_deliveries=my_deliveries)
     
     else: # Consumer
         orders = Order.query.filter_by(consumer_id=current_user.id).all()
         return render_template('consumer_dashboard.html', orders=orders)
+
+@app.route('/delivery/pick/<int:order_id>')
+@login_required
+def pick_order(order_id):
+    if current_user.role != 'delivery': return 'Unauthorized', 403
+    order = Order.query.get(order_id)
+    
+    if order.delivery_partner_id is not None:
+        flash('This order has already been taken by another partner.')
+        return redirect(url_for('dashboard'))
+        
+    order.delivery_partner_id = current_user.id
+    order.status = 'Out for Delivery' # Assuming checking it out means they are going to deliver it
+    db.session.commit()
+    flash('Order assigned to you successfully!')
+    return redirect(url_for('dashboard'))
 
 @app.route('/farmer/add-product', methods=['POST'])
 @login_required
