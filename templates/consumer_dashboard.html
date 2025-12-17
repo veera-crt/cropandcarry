@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 style="margin-bottom: 2rem;">My Orders</h1>
+
+{% if orders %}
+<div style="display: flex; flex-direction: column; gap: 1.5rem;">
+    {% for order in orders %}
+    <div class="dashboard-card" style="padding: 1.5rem; margin-bottom: 0;">
+        <div
+            style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid #eee; padding-bottom: 1rem; margin-bottom: 1rem;">
+            <div>
+                <strong style="font-size: 1.1rem; color: var(--dark);">Order #{{ order.id }}</strong>
+                <div style="color: var(--text-light); font-size: 0.9rem;">{{ order.created_at.strftime('%Y-%m-%d') }}
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 1.2rem; font-weight: 700; color: var(--primary-dark);">₹{{ order.total_amount }}
+                </div>
+                <div style="font-size: 0.85rem; color: var(--text-light);">{{ order.payment_method }}</div>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <span class="badge" style="background: {% if order.status == 'Cancelled' %}#ffebee{% else %}var(--light){% endif %}; 
+                           color: {% if order.status == 'Cancelled' %}#c62828{% else %}var(--dark){% endif %};">
+                    Status: {{ order.status }}
+                </span>
+                {% if order.status in ['Pending', 'Ready'] %}
+                <a href="{{ url_for('cancel_order', order_id=order.id) }}" class="btn-logout"
+                    style="font-size: 0.8rem; padding: 0.3rem 0.8rem; border: 1px solid #e74c3c; text-decoration: none;"
+                    onclick="return confirm('Are you sure you want to cancel this order?')">
+                    Cancel
+                </a>
+                {% endif %}
+            </div>
+
+            <details style="flex-basis: 100%;">
+                <summary style="cursor: pointer; color: var(--primary); font-weight: 500; outline: none;">View {{
+                    order.items|length }} Items</summary>
+                <ul
+                    style="margin-top: 1rem; padding-left: 1rem; list-style: none; background: #f8f9fa; padding: 1rem; border-radius: 8px;">
+                    {% for item in order.items %}
+                    <li
+                        style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.95rem;">
+                        <span>{{ item.quantity }}x {{ item.product.name }}</span>
+                        <span>₹{{ item.price }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </details>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div
+    style="text-align: center; padding: 4rem; background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow);">
+    <h3 style="color: var(--text-light); margin-bottom: 1rem;">No orders yet</h3>
+    <p style="margin-bottom: 2rem;">Start filling your basket with fresh produce!</p>
+    <a href="{{ url_for('index') }}" class="btn-submit">Go to Market</a>
+</div>
+{% endif %}
+{% endblock %}

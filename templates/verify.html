@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="auth-form">
+    <h2>Verify OTP</h2>
+    <p>We have sent a 6-digit code to your email.</p>
+    <form action="{{ url_for('verify_otp') }}" method="POST">
+        <div class="form-group">
+            <label>OTP Code</label>
+            <input type="text" name="otp" required maxlength="6">
+        </div>
+        <button type="submit" class="btn-submit">Verify</button>
+    </form>
+</div>
+{% endblock %}

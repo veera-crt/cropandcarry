@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Your Cart</h1>
+
+{% if cart_items %}
+<table class="dashboard-table">
+    <thead>
+        <tr>
+            <th>Product</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Total</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in cart_items %}
+        <tr>
+            <td style="display: flex; align-items: center; gap: 1rem;">
+                {% if item.product.image_url %}
+                <img src="{{ item.product.image_url }}" alt="{{ item.product.name }}"
+                    style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;">
+                {% else %}
+                <div style="width: 50px; height: 50px; background: #eee; border-radius: 8px;"></div>
+                {% endif %}
+                <div>
+                    <strong>{{ item.product.name }}</strong><br>
+                    <small style="color: #777;">Available: {{ item.product.stock }} {{ item.product.unit }}</small>
+                </div>
+            </td>
+            <td>₹{{ item.product.price }} / {{ item.product.unit }}</td>
+            <td>
+                <form action="{{ url_for('update_cart_quantity') }}" method="POST"
+                    style="display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="hidden" name="product_id" value="{{ item.product.id }}">
+                    <input type="number" name="quantity" value="{{ item.quantity }}" min="1"
+                        max="{{ item.product.stock }}" onchange="this.form.submit()"
+                        style="width: 70px; padding: 0.4rem; border: 1px solid #ddd; border-radius: 4px;">
+                    <span style="font-size: 0.9rem;">{{ item.product.unit }}</span>
+                </form>
+            </td>
+            <td>₹{{ item.total }}</td>
+            <td>
+                <a href="{{ url_for('remove_from_cart', id=item.product.id) }}"
+                    style="color: #e74c3c; font-size: 1.2rem;" title="Remove"><i class="fas fa-trash"></i></a>
+            </td>
+        </tr>
+        {% endfor %}
+        <tr style="font-weight: bold; background: #fafafa;">
+            <td colspan="3" style="text-align: right;">Total Amount:</td>
+            <td colspan="2" style="font-size: 1.2rem; color: var(--primary-dark);">₹{{ total }}</td>
+        </tr>
+    </tbody>
+</table>
+
+<div style="margin-top: 2rem; max-width: 400px; margin-left: auto;">
+    <h3>Checkout</h3>
+    <form action="{{ url_for('checkout') }}" method="POST" class="auth-form"
+        style="margin: 0; box-shadow: none; border: 1px solid #eee;">
+        <div class="form-group">
+            <label>Payment Method</label>
+            <select name="payment_method">
+                <option value="UPI">UPI (Scan to Pay)</option>
+                <option value="COD">Cash on Delivery</option>
+            </select>
+        </div>
+        <button type="submit" class="btn-submit" style="width: 100%;">Place Order</button>
+    </form>
+</div>
+{% else %}
+<p>Your cart is empty. <a href="{{ url_for('index') }}">Go Shopping</a></p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="hero">
+    <h1>Fresh from Farm to Home</h1>
+    <p>Discover the finest local produce delivered directly to your doorstep. Support farmers, eat healthy.</p>
+</div>
+
+<h2><span style="border-bottom: 3px solid var(--secondary); padding-bottom: 5px;">Marketplace</span></h2>
+<div class="product-grid">
+    {% for product in products %}
+    <div class="product-card">
+        <div class="img-wrapper">
+            {% if product.image_url %}
+            <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-img">
+            {% else %}
+            <div class="product-img"
+                style="display: flex; align-items: center; justify-content: center; background: #eee; color: #aaa; font-weight: 500;">
+                No Image</div>
+            {% endif %}
+        </div>
+
+        <div class="product-info">
+            <div>
+                <h3 class="product-title">{{ product.name }}</h3>
+                <p style="font-size: 0.9rem; color: #7f8c8d; line-height: 1.4; margin-bottom: 1rem;">{{
+                    product.description }}</p>
+                <div style="font-size: 0.85rem; color: #95a5a6; display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="background: #f1f2f6; padding: 2px 8px; border-radius: 4px;">Farmer: {{
+                        product.farmer.name }}</span>
+                </div>
+            </div>
+
+            <div class="product-meta">
+                <span class="product-price">₹{{ product.price }}</span>
+                {% if product.stock > 0 %}
+                <span class="badge badge-stock">In Stock: {{ product.stock }}</span>
+                {% else %}
+                <span class="badge badge-out">Out of Stock</span>
+                {% endif %}
+            </div>
+
+            {% if current_user.is_authenticated and current_user.role == 'consumer' and product.stock > 0 %}
+            <a href="{{ url_for('add_to_cart', id=product.id) }}" class="btn-add">Add to Cart</a>
+            {% elif not current_user.is_authenticated and product.stock > 0 %}
+            <a href="{{ url_for('login') }}" class="btn-add">Login to Buy</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

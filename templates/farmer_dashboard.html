@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h1>Farmer Dashboard</h1>
+    <span class="badge badge-stock" style="font-size: 1rem; padding: 0.5rem 1rem;">Verified Farmer</span>
+</div>
+
+<div class="stat-grid">
+    <div class="stat-box">
+        <h3>Total Sales</h3>
+        <p>{{ total_sales }} Units</p>
+    </div>
+    <div class="stat-box">
+        <h3>Total Revenue</h3>
+        <p style="color: var(--primary);">₹{{ sales_amount }}</p>
+    </div>
+    <div class="stat-box">
+        <h3>Payout Status</h3>
+        <p style="font-size: 1.2rem; color: var(--text-light); margin-top: 0.5rem;">Next Payout: <strong>24 hrs</strong>
+        </p>
+    </div>
+</div>
+
+<div class="dashboard-card">
+    <h2>Add New Product</h2>
+    <form action="{{ url_for('add_product') }}" method="POST" style="margin-top: 1.5rem;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+            <div class="form-group">
+                <label>Product Name</label>
+                <input type="text" name="name" placeholder="e.g., Organic Tomatoes" required>
+            </div>
+            <div class="form-group">
+                <label>Price (₹)</label>
+                <input type="number" step="0.01" name="price" placeholder="0.00" required>
+            </div>
+            <div class="form-group">
+                <label>Stock Quantity</label>
+                <input type="number" name="stock" placeholder="0" required>
+            </div>
+            <div class="form-group">
+                <label>Unit</label>
+                <select name="unit" required>
+                    <option value="Kg">Kg</option>
+                    <option value="L">L</option>
+                    <option value="Count">Count</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Image URL (or Base64)</label>
+                <input type="text" name="image_url" placeholder="Paste image link or data string" required>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Description</label>
+            <textarea name="description" rows="2" placeholder="Describe your product..."></textarea>
+        </div>
+        <button type="submit" class="btn-submit" style="width: auto;">+ Add Product</button>
+    </form>
+</div>
+
+<div class="dashboard-card">
+    <h2>My Products</h2>
+    <div style="overflow-x: auto;">
+        <table class="dashboard-table">
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Price (₹)</th>
+                    <th>Stock</th>
+                    <th>Sales</th>
+                    <th>Update</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td style="font-weight: 600;">{{ product.name }}</td>
+                    <td>
+                        <form action="{{ url_for('update_product', id=product.id) }}" method="POST"
+                            style="display: flex; gap: 0.5rem; align-items: center;">
+                            <input type="number" step="0.01" name="price" value="{{ product.price }}"
+                                style="width: 100px; padding: 0.5rem;">
+                    </td>
+                    <td>
+                        <input type="number" name="stock" value="{{ product.stock }}"
+                            style="width: 100px; padding: 0.5rem;">
+                    </td>
+                    <td>{{ product.total_sales }}</td>
+                    <td>
+                        <button type="submit"
+                            style="background: var(--dark); color: white; border: none; padding: 0.5rem 1.2rem; border-radius: 50px; cursor: pointer; font-size: 0.85rem; font-weight: 600;">Save</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

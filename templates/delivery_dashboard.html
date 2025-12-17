@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h1>Delivery Partner Dashboard</h1>
+    <span class="badge"
+        style="background: var(--light); color: var(--dark); border-radius: 50px; padding: 0.5rem 1rem;">Active</span>
+</div>
+
+<div style="margin-top: 2rem;">
+    <h2><span style="border-bottom: 3px solid var(--secondary); padding-bottom: 5px;">Available Pickups</span></h2>
+    {% if available %}
+    <div class="product-grid">
+        {% for order in available %}
+        <div class="product-card" style="padding: 1.5rem; display: block;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                <h3 style="margin:0;">Order #{{ order.id }}</h3>
+                <span style="font-size: 1.2rem; font-weight: 700; color: var(--primary);">₹{{ order.total_amount
+                    }}</span>
+            </div>
+
+            <div style="margin-bottom: 1rem; font-size: 0.95rem;">
+                <p style="margin-bottom: 0.5rem;"><strong style="color: var(--text-light);">Pickup:</strong> Multiple
+                    Farmers (Aggregated)</p>
+                <p style="margin-bottom: 0.5rem;"><strong style="color: var(--text-light);">Drop:</strong> {{
+                    order.drop_address }}</p>
+                <p><strong style="color: var(--text-light);">Method:</strong> {{ order.payment_method }}</p>
+            </div>
+
+            <a href="{{ url_for('pick_order', order_id=order.id) }}" class="btn-submit"
+                style="display: block; text-align: center; text-decoration: none; margin-top: 1rem; border-radius: var(--radius-sm);">Accept
+                Delivery</a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div
+        style="text-align: center; padding: 3rem; background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); margin-top: 1.5rem;">
+        <p style="color: var(--text-light);">No new orders available for pickup right now.</p>
+    </div>
+    {% endif %}
+</div>
+
+<div style="margin-top: 4rem;">
+    <h2><span style="border-bottom: 3px solid var(--accent); padding-bottom: 5px;">My Active Deliveries</span></h2>
+    {% if my_deliveries %}
+    <div class="dashboard-card" style="margin-top: 1.5rem;">
+        <div style="overflow-x: auto;">
+            <table class="dashboard-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Drop Address</th>
+                        <th>Current Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in my_deliveries %}
+                    <tr>
+                        <td><strong>#{{ order.id }}</strong></td>
+                        <td>{{ order.drop_address }}</td>
+                        <td><span class="badge" style="background: #e3f2fd; color: #1565c0;">{{ order.status }}</span>
+                        </td>
+                        <td>
+                            {% if order.status != 'Delivered' %}
+                            <a href="{{ url_for('complete_order', order_id=order.id) }}"
+                                style="color: white; background: var(--primary-dark); padding: 0.3rem 0.8rem; border-radius: 4px; font-weight: 600; font-size: 0.85rem;">Mark
+                                Delivered</a>
+                            {% else %}
+                            <span style="color: var(--primary); font-weight: 600;">✓ Completed</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div
+        style="text-align: center; padding: 3rem; background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); margin-top: 1.5rem;">
+        <p style="color: var(--text-light);">You have no active deliveries.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
