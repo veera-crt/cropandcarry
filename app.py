@@ -268,9 +268,26 @@ def update_product(id):
     if product.farmer_id != current_user.id:
         return 'Unauthorized', 403
         
-    product.price = float(request.form.get('price'))
     product.stock = int(request.form.get('stock'))
     db.session.commit()
+    return redirect(url_for('dashboard'))
+
+@app.route('/farmer/delete-product/<int:id>')
+@login_required
+def delete_product(id):
+    product = Product.query.get_or_404(id)
+    if product.farmer_id != current_user.id:
+        return 'Unauthorized', 403
+    
+    try:
+        db.session.delete(product)
+        db.session.commit()
+        flash('Product deleted successfully')
+    except Exception as e:
+        db.session.rollback()
+        # likely due to foreign key constraint (product in orders)
+        flash('Cannot delete product because it is part of existing orders. Try setting stock to 0 instead.')
+        
     return redirect(url_for('dashboard'))
 
 @app.route('/add-to-cart/<int:id>')
