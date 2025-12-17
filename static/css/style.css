@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Poppins:wght@500;600;700&display=swap');
+
 :root {
     --primary: #2ecc71;
     --primary-dark: #27ae60;
@@ -17,8 +19,6 @@
     --font-body: 'Inter', sans-serif;
     --transition: all 0.3s ease;
 }
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Poppins:wght@500;600;700&display=swap');
 
 * {
     margin: 0;
