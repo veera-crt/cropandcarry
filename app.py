@@ -268,6 +268,7 @@ def update_product(id):
     if product.farmer_id != current_user.id:
         return 'Unauthorized', 403
         
+    product.price = float(request.form.get('price'))
     product.stock = int(request.form.get('stock'))
     db.session.commit()
     return redirect(url_for('dashboard'))
