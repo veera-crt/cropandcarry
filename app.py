@@ -105,12 +105,13 @@ class OrderItem(db.Model):
 def load_user(user_id):
     return db.session.get(User, int(user_id))
 
-def send_async_email(app, msg):
-    with app.app_context():
-        try:
-            mail.send(msg)
-        except Exception as e:
-            print(f"Error sending email: {e}")
+def send_email(msg):
+    try:
+        mail.send(msg)
+    except Exception as e:
+        print(f"Error sending email: {e}")
+        # In production, you might want to log this deeper
+        # For now, we print to logs which Vercel captures
 
 def send_otp(user):
     otp = ''.join(random.choices(string.digits, k=6))
@@ -121,8 +122,12 @@ def send_otp(user):
     msg = Message('Crop & Carry Verification Code', recipients=[user.email])
     msg.body = f'Your verification code is {otp}'
     
-    # Send asynchronously
-    Thread(target=send_async_email, args=(app, msg)).start()
+    # Send Synchronously for Vercel reliability
+    try:
+        mail.send(msg)
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+        
     return otp
 
 def send_receipt(order):
@@ -140,8 +145,11 @@ def send_receipt(order):
     
     msg.body += '\nWe will notify you when it is out for delivery.'
     
-    # Send asynchronously
-    Thread(target=send_async_email, args=(app, msg)).start()
+    # Send Synchronously
+    try:
+        mail.send(msg)
+    except Exception as e:
+        print(f"Error sending receipt: {e}")
 
 def send_cancellation_email(order):
     msg = Message('Order Cancelled - Crop & Carry', recipients=[order.consumer.email])
@@ -153,7 +161,11 @@ def send_cancellation_email(order):
     
     If you have paid via UPI, the refund will be processed within 5-7 business days.
     '''
-    Thread(target=send_async_email, args=(app, msg)).start()
+    # Send Synchronously
+    try:
+        mail.send(msg)
+    except Exception as e:
+        print(f"Error sending cancellation: {e}")
 
 # Routes
 
