@@ -268,8 +268,9 @@ def add_product():
     stock = int(request.form.get('stock'))
     unit = request.form.get('unit')
     image_url = request.form.get('image_url') # Link or file upload handling logic if implemented
+    description = request.form.get('description')
     
-    new_product = Product(farmer_id=current_user.id, name=name, price=price, stock=stock, unit=unit, image_url=image_url)
+    new_product = Product(farmer_id=current_user.id, name=name, price=price, stock=stock, unit=unit, image_url=image_url, description=description)
     db.session.add(new_product)
     db.session.commit()
     return redirect(url_for('dashboard'))

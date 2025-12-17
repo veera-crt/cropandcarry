@@ -32,9 +32,9 @@
             </div>
 
             <div class="product-meta">
-                <span class="product-price">₹{{ product.price }}</span>
+                <span class="product-price">₹{{ product.price }} / {{ product.unit }}</span>
                 {% if product.stock > 0 %}
-                <span class="badge badge-stock">In Stock: {{ product.stock }}</span>
+                <span class="badge badge-stock">In Stock: {{ product.stock }} {{ product.unit }}</span>
                 {% else %}
                 <span class="badge badge-out">Out of Stock</span>
                 {% endif %}
