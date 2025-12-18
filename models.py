@@ -50,6 +50,10 @@ class Product(db.Model):
     total_sales = db.Column(db.Integer, default=0)
     is_deleted = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # New Pickup Details
+    pickup_address = db.Column(db.Text)
+    pickup_phone = db.Column(db.String(20))
 
     # Relationships
     inventory_logs = db.relationship('InventoryAudit', backref='product', lazy=True)
@@ -67,6 +71,8 @@ class Order(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     pickup_address = db.Column(db.Text)
     drop_address = db.Column(db.Text)
+    pickup_phone = db.Column(db.String(20))
+    drop_phone = db.Column(db.String(20))
     
     items = db.relationship('OrderItem', backref='order', lazy=True)
     transaction = db.relationship('Transaction', backref='order', uselist=False)

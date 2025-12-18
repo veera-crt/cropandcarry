@@ -109,14 +109,26 @@ def signup():
         password = request.form.get('password')
         role = request.form.get('role')
         name = request.form.get('name')
+        phone = request.form.get('phone')
+        address = request.form.get('address')
         
         if User.query.filter_by(email=email).first():
             flash('Email already exists')
             return redirect(url_for('signup'))
             
         hashed_pw = generate_password_hash(password, method='pbkdf2:sha256')
-        new_user = User(email=email, password_hash=hashed_pw, role=role, name=name, is_verified=False)
+        new_user = User(email=email, password_hash=hashed_pw, role=role, name=name, phone=phone, address=address, is_verified=False)
         db.session.add(new_user)
+        db.session.commit()
+
+        # Initialize Profile based on role
+        if role == 'farmer':
+            profile = FarmerProfile(user_id=new_user.id, farm_name=f"{name}'s Farm", farm_location=address)
+            db.session.add(profile)
+        elif role == 'delivery':
+            profile = DeliveryPartnerProfile(user_id=new_user.id, is_active=True)
+            db.session.add(profile)
+        
         db.session.commit()
         
         send_otp(new_user)
@@ -277,6 +289,8 @@ def add_product():
     category_id = request.form.get('category_id')
     image_url = request.form.get('image_url')
     description = request.form.get('description')
+    pickup_address = request.form.get('pickup_address')
+    pickup_phone = request.form.get('pickup_phone')
     
     new_product = Product(
         farmer_id=current_user.id, 
@@ -286,7 +300,9 @@ def add_product():
         unit=unit, 
         category_id=category_id,
         image_url=image_url, 
-        description=description
+        description=description,
+        pickup_address=pickup_address,
+        pickup_phone=pickup_phone
     )
     db.session.add(new_product)
     db.session.commit()
@@ -376,6 +392,9 @@ def checkout():
     if not cart: return redirect(url_for('index'))
         
     payment_method = request.form.get('payment_method')
+    drop_address = request.form.get('drop_address')
+    drop_phone = request.form.get('drop_phone')
+    
     cart_ids = [int(k) for k in cart.keys()]
     products = Product.query.filter(Product.id.in_(cart_ids)).all()
     
@@ -389,7 +408,17 @@ def checkout():
         total_amount += (p.price * qty)
         final_cart_items.append((p, qty))
     
-    order = Order(consumer_id=current_user.id, total_amount=total_amount, payment_method=payment_method, drop_address=current_user.address)
+    # Use first product for pickup details (simplification)
+    main_p = products[0]
+    order = Order(
+        consumer_id=current_user.id, 
+        total_amount=total_amount, 
+        payment_method=payment_method, 
+        drop_address=drop_address,
+        drop_phone=drop_phone,
+        pickup_address=main_p.pickup_address,
+        pickup_phone=main_p.pickup_phone
+    )
     db.session.add(order)
     db.session.commit()
     
@@ -511,7 +540,12 @@ with app.app_context():
         db.create_all()
         # Incremental migrations for existing tables
         db.session.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS address TEXT"))
+        db.session.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS phone TEXT"))
         db.session.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS category_id INTEGER"))
+        db.session.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS pickup_address TEXT"))
+        db.session.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS pickup_phone TEXT"))
+        db.session.execute(text("ALTER TABLE orders ADD COLUMN IF NOT EXISTS pickup_phone TEXT"))
+        db.session.execute(text("ALTER TABLE orders ADD COLUMN IF NOT EXISTS drop_phone TEXT"))
         db.session.commit()
         
         # Seed categories if they don't exist

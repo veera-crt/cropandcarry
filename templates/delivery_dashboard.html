@@ -70,7 +70,9 @@
                             <i class="fas fa-warehouse"></i>
                         </div>
                         <p style="font-weight: 600; color: var(--dark);">Pickup: <span
-                                style="font-weight: 400; color: var(--text-muted);">Farm Cluster Alpha</span></p>
+                                style="font-weight: 400; color: var(--text-muted);">{{ order.pickup_address or 'Farm
+                                Hub' }} <strong style="color: var(--secondary);">({{ order.pickup_phone or 'No phone'
+                                    }})</strong></span></p>
                     </div>
                     <div style="display: flex; gap: 1.2rem; margin-bottom: 1rem; align-items: center;">
                         <div
@@ -78,7 +80,8 @@
                             <i class="fas fa-map-marker-alt"></i>
                         </div>
                         <p style="font-weight: 600; color: var(--dark);">Drop: <span
-                                style="font-weight: 400; color: var(--text-muted);">{{ order.drop_address }}</span></p>
+                                style="font-weight: 400; color: var(--text-muted);">{{ order.drop_address }} <strong
+                                    style="color: #ef4444;">({{ order.drop_phone or 'No phone' }})</strong></span></p>
                     </div>
                     <div style="display: flex; gap: 1.2rem; align-items: center;">
                         <div
