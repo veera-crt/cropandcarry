@@ -513,6 +513,15 @@ with app.app_context():
         db.session.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS address TEXT"))
         db.session.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS category_id INTEGER"))
         db.session.commit()
+        
+        # Seed categories if they don't exist
+        if not Category.query.first():
+            default_categories = ['Vegetables', 'Fruits', 'Grains', 'Dairy', 'Honey']
+            for cat_name in default_categories:
+                db.session.add(Category(name=cat_name))
+            db.session.commit()
+            print("Categories seeded successfully.")
+            
         print("Database initialized and migrated successfully.")
     except Exception as e: 
         print(f"DB Initialization/Migration failed: {e}")

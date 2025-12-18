@@ -82,13 +82,14 @@
                 <label style="font-weight: 700; font-size: 0.9rem; color: var(--text-muted);">Unit & Category</label>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                     <select name="unit" required
-                        style="padding: 1rem; border: 1px solid #e2e8f0; border-radius: var(--radius-md); font-family: inherit;">
-                        <option value="Kg">Kg</option>
-                        <option value="L">Litre</option>
-                        <option value="Count">Unit</option>
+                        style="padding: 1rem; border: 1px solid #e2e8f0; border-radius: var(--radius-md); font-family: inherit; font-weight: 600;">
+                        <option value="Kg">Per Kilogram (Kg)</option>
+                        <option value="L">Per Litre (L)</option>
+                        <option value="Count">Per Unit (Count)</option>
                     </select>
                     <select name="category_id" required
-                        style="padding: 1rem; border: 1px solid #e2e8f0; border-radius: var(--radius-md); font-family: inherit;">
+                        style="padding: 1rem; border: 1px solid #e2e8f0; border-radius: var(--radius-md); font-family: inherit; font-weight: 600;">
+                        <option value="" disabled selected>Select Category</option>
                         {% for cat in categories %}
                         <option value="{{ cat.id }}">{{ cat.name }}</option>
                         {% endfor %}
