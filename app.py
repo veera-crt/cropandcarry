@@ -317,6 +317,21 @@ def get_available_count():
     ).count()
     return {'count': count}
 
+@app.route('/api/farmer/stats')
+@login_required
+def get_farmer_stats():
+    if current_user.role != 'farmer': return {'total_sales': 0}, 403
+    stats = db.session.query(func.sum(Product.total_sales)).filter(Product.farmer_id == current_user.id).first()
+    return {'total_sales': stats[0] or 0}
+
+@app.route('/api/consumer/order-updates')
+@login_required
+def get_consumer_updates():
+    if current_user.role != 'consumer': return {'statuses': {}}, 403
+    orders = Order.query.filter_by(consumer_id=current_user.id).all()
+    # Simple dictionary of ID -> Status to detect changes
+    return {'statuses': {str(o.id): o.status for o in orders}}
+
 @app.route('/delivery/pick/<int:order_id>')
 @login_required
 def pick_order(order_id):

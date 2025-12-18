@@ -1,7 +1,49 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 style="margin-bottom: 2rem;">My Orders</h1>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h1>My Orders</h1>
+    <span class="badge" id="live-status"
+        data-state='{ {% for o in orders %}"{{o.id}}":"{{o.status}}"{% if not loop.last %},{% endif %}{% endfor %} }'
+        style="background: var(--light); color: var(--dark); border-radius: 50px; padding: 0.5rem 1rem;">
+        <i class="fas fa-circle"
+            style="color: #2ecc71; font-size: 0.6rem; vertical-align: middle; margin-right: 5px;"></i>
+        Monitoring Live
+    </span>
+</div>
+
+<script>
+    function checkOrderUpdates() {
+        const badge = document.getElementById('live-status');
+        const currentState = JSON.parse(badge.dataset.state);
+
+        fetch('/api/consumer/order-updates')
+            .then(response => response.json())
+            .then(data => {
+                // Compare keys and values
+                const newStatuses = data.statuses;
+                let changed = false;
+
+                // If number of orders changed
+                if (Object.keys(newStatuses).length !== Object.keys(currentState).length) {
+                    changed = true;
+                } else {
+                    for (let id in newStatuses) {
+                        if (newStatuses[id] !== currentState[id]) {
+                            changed = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (changed) {
+                    location.reload();
+                }
+            })
+            .catch(err => console.error('Error polling orders:', err));
+    }
+    setInterval(checkOrderUpdates, 5000);
+</script>
 
 {% if orders %}
 <div style="display: flex; flex-direction: column; gap: 1.5rem;">

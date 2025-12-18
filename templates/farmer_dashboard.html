@@ -3,8 +3,30 @@
 {% block content %}
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
     <h1>Farmer Dashboard</h1>
-    <span class="badge badge-stock" style="font-size: 1rem; padding: 0.5rem 1rem;">Verified Farmer</span>
+    <span class="badge" id="live-status" data-sales="{{ total_sales }}"
+        style="background: var(--light); color: var(--dark); border-radius: 50px; padding: 0.5rem 1rem;">
+        <i class="fas fa-circle"
+            style="color: #2ecc71; font-size: 0.6rem; vertical-align: middle; margin-right: 5px;"></i>
+        Monitoring Live
+    </span>
 </div>
+
+<script>
+    function checkNewSales() {
+        const badge = document.getElementById('live-status');
+        const currentSales = parseInt(badge.dataset.sales);
+
+        fetch('/api/farmer/stats')
+            .then(response => response.json())
+            .then(data => {
+                if (data.total_sales !== currentSales) {
+                    location.reload();
+                }
+            })
+            .catch(err => console.error('Error polling sales:', err));
+    }
+    setInterval(checkNewSales, 5000);
+</script>
 
 <div class="stat-grid">
     <div class="stat-box">
