@@ -21,16 +21,23 @@ scheduler = APScheduler()
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL').replace("postgres://", "postgresql://", 1) if os.getenv('DATABASE_URL') else "sqlite:///site.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+
+# Optimized Engine Options
+engine_options = {
     "pool_pre_ping": True,
     "pool_recycle": 300,
-    "connect_args": {
+}
+
+# Only add connect_args for PostgreSQL
+if app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgresql'):
+    engine_options["connect_args"] = {
         "keepalives": 1,
         "keepalives_idle": 30,
         "keepalives_interval": 10,
         "keepalives_count": 5,
     }
-}
+
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = engine_options
 
 # Mail Config
 app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER')
@@ -474,18 +481,6 @@ def checkout():
     flash('Order placed successfully! Receipt sent to email.')
     return redirect(url_for('dashboard'))
 
-def send_cancellation_email(order):
-    msg = Message('Order Cancelled - Crop & Carry', recipients=[order.consumer.email])
-    msg.body = f'''
-    Your order has been cancelled.
-    
-    Order ID: {order.id}
-    Cancelled on: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')}
-    
-    If you have paid via UPI, the refund will be processed within 5-7 business days.
-    '''
-    Thread(target=send_async_email, args=(app, msg)).start()
-
 @app.route('/cancel-order/<int:order_id>')
 @login_required
 def cancel_order(order_id):
@@ -511,17 +506,6 @@ def cancel_order(order_id):
     
     send_cancellation_email(order)
     flash('Order cancelled successfully. Confirmation sent to email.')
-    return redirect(url_for('dashboard'))
-
-
-@app.route('/delivery/pick/<int:order_id>')
-@login_required
-def pick_order(order_id):
-    if current_user.role != 'delivery': return 'Unauthorized', 403
-    order = Order.query.get(order_id)
-    order.delivery_partner_id = current_user.id
-    order.status = 'Out for Delivery'
-    db.session.commit()
     return redirect(url_for('dashboard'))
 
 @app.route('/delivery/complete/<int:order_id>')
@@ -624,17 +608,22 @@ def send_daily_reports():
                     print(f"Failed to send report to {farmer.email}: {e}")
 
 # Initialize Scheduler
-scheduler.init_app(app)
-scheduler.start()
+if not os.getenv('VERCEL'):
+    try:
+        scheduler.init_app(app)
+        scheduler.start()
+        # Schedule job to run every 24 hours
+        if not scheduler.get_job('daily_report'):
+            scheduler.add_job(id='daily_report', func=send_daily_reports, trigger='interval', hours=24)
+    except Exception as e:
+        print(f"Scheduler failed to start: {e}")
 
-# Schedule job to run every 24 hours (for demo, we can run it every minute to test, but let's stick to 24h logic)
-# In production, use a persistent job store. Here we add it in-memory.
-# We set it to run at a specific time or interval.
-scheduler.add_job(id='daily_report', func=send_daily_reports, trigger='interval', hours=24)
-
-# App Context
+# App Context - Database Creation
 with app.app_context():
-    db.create_all()
+    try:
+        db.create_all()
+    except Exception as e:
+        print(f"Database creation failed: {e}")
 
 if __name__ == '__main__':
     app.run(debug=True, port=3000)
