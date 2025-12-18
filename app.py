@@ -93,8 +93,13 @@ def send_cancellation_email(order):
 
 @app.route('/')
 def index():
-    products = Product.query.filter_by(is_deleted=False).all()
-    return render_template('market.html', products=products)
+    categories = Category.query.all()
+    category_id = request.args.get('category_id')
+    if category_id:
+        products = Product.query.filter_by(category_id=category_id, is_deleted=False).all()
+    else:
+        products = Product.query.filter_by(is_deleted=False).all()
+    return render_template('market.html', products=products, categories=categories)
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -194,6 +199,7 @@ def logout():
 def dashboard():
     if current_user.role == 'farmer':
         products = Product.query.filter_by(farmer_id=current_user.id, is_deleted=False).all()
+        categories = Category.query.all()
         stats = db.session.query(
             func.sum(Product.total_sales).label('total_sales'),
             func.sum(Product.total_sales * Product.price).label('sales_amount')
@@ -202,7 +208,7 @@ def dashboard():
         total_sales = stats.total_sales or 0
         sales_amount = stats.sales_amount or 0.0
         
-        return render_template('farmer_dashboard.html', products=products, total_sales=total_sales, sales_amount=sales_amount)
+        return render_template('farmer_dashboard.html', products=products, categories=categories, total_sales=total_sales, sales_amount=sales_amount)
     
     elif current_user.role == 'delivery':
         available_orders = Order.query.filter(
@@ -267,10 +273,20 @@ def add_product():
     price = float(request.form.get('price'))
     stock = int(request.form.get('stock'))
     unit = request.form.get('unit')
+    category_id = request.form.get('category_id')
     image_url = request.form.get('image_url')
     description = request.form.get('description')
     
-    new_product = Product(farmer_id=current_user.id, name=name, price=price, stock=stock, unit=unit, image_url=image_url, description=description)
+    new_product = Product(
+        farmer_id=current_user.id, 
+        name=name, 
+        price=price, 
+        stock=stock, 
+        unit=unit, 
+        category_id=category_id,
+        image_url=image_url, 
+        description=description
+    )
     db.session.add(new_product)
     db.session.commit()
     return redirect(url_for('dashboard'))

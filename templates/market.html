@@ -9,11 +9,21 @@
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;"
     class="animate-up">
     <h2><span style="border-bottom: 3px solid var(--primary); padding-bottom: 8px;">Explore Marketplace</span></h2>
-    <div style="display: flex; gap: 1rem;">
-        <span
-            style="background: var(--white); padding: 0.5rem 1rem; border-radius: var(--radius-full); font-weight: 600; font-size: 0.85rem; border: 1px solid var(--glass-border); color: var(--primary);">
-            <i class="fas fa-filter"></i> All Products
-        </span>
+    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: flex-end;">
+        <a href="{{ url_for('index') }}"
+            style="background: {% if not request.args.get('category_id') %}var(--primary){% else %}var(--white){% endif %}; 
+                  color: {% if not request.args.get('category_id') %}var(--white){% else %}var(--primary){% endif %}; 
+                  padding: 0.5rem 1rem; border-radius: var(--radius-full); font-weight: 600; font-size: 0.85rem; border: 1px solid var(--glass-border); transition: var(--transition);">
+            All
+        </a>
+        {% for cat in categories %}
+        <a href="{{ url_for('index', category_id=cat.id) }}"
+            style="background: {% if request.args.get('category_id') == cat.id|string %}var(--primary){% else %}var(--white){% endif %}; 
+                  color: {% if request.args.get('category_id') == cat.id|string %}var(--white){% else %}var(--primary){% endif %}; 
+                  padding: 0.5rem 1rem; border-radius: var(--radius-full); font-weight: 600; font-size: 0.85rem; border: 1px solid var(--glass-border); transition: var(--transition);">
+            {{ cat.name }}
+        </a>
+        {% endfor %}
     </div>
 </div>
 

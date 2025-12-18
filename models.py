@@ -11,6 +11,7 @@ class User(UserMixin, db.Model):
     is_verified = db.Column(db.Boolean, default=False)
     name = db.Column(db.String(100))
     phone = db.Column(db.String(20))
+    address = db.Column(db.Text)
     otp_code = db.Column(db.String(6))
     otp_expiry = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
