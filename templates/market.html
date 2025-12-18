@@ -1,18 +1,21 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="hero animate-up">
-    <h1>Freshness, Delivered.<br><span style="color: var(--primary)">From Farm to Home.</span></h1>
-    <p>Experience the luxury of premium local produce. Directly sourced, ethically grown, and delivered with care.</p>
+<div class="hero animate-up" style="--i: 0">
+    <div
+        style="display: inline-block; background: var(--primary-light); color: var(--primary-dark); padding: 0.5rem 1.2rem; border-radius: var(--radius-full); font-weight: 800; font-size: 0.8rem; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
+        🌱 Fresh from the Source
+    </div>
+    <h1>Premium Produce,<br>Directly from the Farm.</h1>
+    <p>Experience the luxury of ethically grown, freshly harvested local produce. Directly sourced and delivered with
+        absolute care.</p>
 </div>
 
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;"
-    class="animate-up">
-    <h2><span style="border-bottom: 3px solid var(--primary); padding-bottom: 8px;">Explore Marketplace</span></h2>
-    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: flex-end;">
+<div style="text-align: center;" class="animate-up" style="--i: 1">
+    <div class="filter-bar">
         <a href="{{ url_for('index') }}"
             class="filter-btn {% if not request.args.get('category_id') %}active{% endif %}">
-            All
+            All Produce
         </a>
         {% for cat in categories %}
         <a href="{{ url_for('index', category_id=cat.id) }}"
@@ -25,51 +28,56 @@
 
 <div class="product-grid">
     {% for product in products %}
-    <div class="product-card animate-up" style="--i: {{ loop.index0 }}">
+    <div class="product-card animate-up" style="--i: {{ loop.index + 2 }}">
         <div class="img-wrapper">
             {% if product.image_url %}
             <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-img">
             {% else %}
             <div class="product-img"
-                style="display: flex; align-items: center; justify-content: center; background: #f1f5f9; color: #94a3b8; font-weight: 600;">
-                <i class="fas fa-image" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f8fafc; color: #cbd5e1;">
+                <i class="fas fa-carrot" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                <span style="font-weight: 700; font-size: 0.8rem; text-transform: uppercase;">Image coming soon</span>
             </div>
             {% endif %}
-            <div
-                style="position: absolute; top: 1rem; left: 1rem; background: rgba(255,255,255,0.9); padding: 0.4rem 0.8rem; border-radius: 50px; font-size: 0.75rem; font-weight: 700; backdrop-filter: blur(4px);">
-                <i class="fas fa-user-circle" style="color: var(--primary);"></i> {{ product.farmer.name }}
+
+            <div class="farmer-badge">
+                <i class="fas fa-user-circle" style="color: var(--primary);"></i>
+                {{ product.farmer.name }}
             </div>
         </div>
 
         <div class="product-info">
-            <h3 class="product-title">{{ product.name }}</h3>
-            <p class="product-desc">
-                {{ product.description or 'Freshly harvested produce from local sustainable farms.' }}
-            </p>
-
-            <div class="product-meta">
-                <span class="product-price">₹{{ '{:,.0f}'.format(product.price) }}<span
-                        style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500;">/{{ product.unit
-                        }}</span></span>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                <h3 class="product-title">{{ product.name }}</h3>
                 {% if product.stock > 0 %}
-                <span class="badge" style="background: var(--primary-light); color: var(--primary);">{{ product.stock }}
-                    {{ product.unit }} Left</span>
+                <span class="badge badge-stock">{{ product.stock }} {{ product.unit }} left</span>
                 {% else %}
-                <span class="badge" style="background: #fee2e2; color: #ef4444;">Sold Out</span>
+                <span class="badge badge-sold">Sold Out</span>
                 {% endif %}
             </div>
 
-            {% if current_user.is_authenticated and current_user.role == 'consumer' and product.stock > 0 %}
-            <a href="{{ url_for('add_to_cart', id=product.id) }}" class="btn-primary"
-                style="width: 100%; margin-top: 1.5rem;">
-                <i class="fas fa-plus"></i> &nbsp; Add to Basket
-            </a>
-            {% elif not current_user.is_authenticated and product.stock > 0 %}
-            <a href="{{ url_for('login') }}" class="btn-primary"
-                style="width: 100%; margin-top: 1.5rem; background: var(--dark);">
-                Login to Buy
-            </a>
-            {% endif %}
+            <p class="product-desc">
+                {{ product.description or 'Exquisitely grown produce from local sustainable farms. Naturally fresh and
+                ethically harvested.' }}
+            </p>
+
+            <div class="product-meta">
+                <div class="price-tag">
+                    ₹{{ '{:,.0f}'.format(product.price) }}<span class="price-unit">/{{ product.unit }}</span>
+                </div>
+
+                {% if current_user.is_authenticated and current_user.role == 'consumer' and product.stock > 0 %}
+                <a href="{{ url_for('add_to_cart', id=product.id) }}" class="btn-primary"
+                    style="padding: 0.8rem 1.2rem; font-size: 0.9rem;">
+                    <i class="fas fa-plus"></i> &nbsp; Add
+                </a>
+                {% elif not current_user.is_authenticated and product.stock > 0 %}
+                <a href="{{ url_for('login') }}" class="btn-primary"
+                    style="background: var(--dark); padding: 0.8rem 1.2rem; font-size: 0.9rem;">
+                    Buy Now
+                </a>
+                {% endif %}
+            </div>
         </div>
     </div>
     {% endfor %}

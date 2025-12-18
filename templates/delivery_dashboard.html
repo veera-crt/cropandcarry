@@ -1,22 +1,24 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;"
+<div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 3.5rem;"
     class="animate-up">
     <div>
-        <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">Partner Dashboard</h1>
-        <p style="color: var(--text-muted);">Manage your active routes and discover new pickup opportunities.</p>
+        <div
+            style="display: inline-block; background: var(--primary-light); color: var(--primary-dark); padding: 0.4rem 1rem; border-radius: var(--radius-full); font-weight: 800; font-size: 0.75rem; margin-bottom: 1rem; text-transform: uppercase;">
+            🚚 Logistics Center</div>
+        <h1 style="font-size: 3rem; margin-bottom: 0.5rem;">Partner Hub</h1>
+        <p style="color: var(--text-muted); font-size: 1.1rem;">Manage active routes and discover new pickup
+            opportunities.</p>
     </div>
-    <span class="badge" id="live-status" data-count="{{ available|length }}"
-        style="background: var(--primary-light); color: var(--primary); padding: 0.75rem 1.5rem; font-size: 0.9rem; border: 1px solid var(--primary-glow);">
-        <i class="fas fa-circle"
-            style="color: #2ecc71; font-size: 0.6rem; vertical-align: middle; margin-right: 8px;"></i>
-        Monitoring Live Pickups
-    </span>
+    <div class="badge" id="live-status" data-count="{{ available|length }}"
+        style="background: var(--white); color: var(--primary-dark); padding: 0.8rem 1.5rem; font-size: 0.9rem; border: 1px solid var(--primary-glow); box-shadow: var(--shadow-card); display: flex; align-items: center; gap: 0.8rem;">
+        <i class="fas fa-circle" style="color: #2ecc71; font-size: 0.6rem; animation: pulse-glow 2s infinite;"></i>
+        <span style="font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;">Scanning Live Loads</span>
+    </div>
 </div>
 
 <script>
-    // Real-time polling for new orders
     function checkNewOrders() {
         const badge = document.getElementById('live-status');
         const currentCount = parseInt(badge.dataset.count);
@@ -34,98 +36,137 @@
 </script>
 
 <div style="margin-top: 2rem;">
-    <h2 style="margin-bottom: 2rem;" class="animate-up"><span
-            style="border-bottom: 3px solid var(--primary); padding-bottom: 8px;">Available Pickups</span></h2>
+    <h2 style="margin-bottom: 2.5rem;" class="animate-up">
+        <span style="border-bottom: 4px solid var(--primary); padding-bottom: 8px;">Unassigned Shipments</span>
+    </h2>
+
     {% if available %}
-    <div class="product-grid animate-up" style="animation-delay: 0.1s">
+    <div class="product-grid animate-up" style="--i: 1">
         {% for order in available %}
-        <div class="product-card"
-            style="padding: 2rem; display: flex; flex-direction: column; justify-content: space-between; min-height: 280px; border: 1px solid rgba(0,0,0,0.02); box-shadow: var(--shadow-premium);">
+        <div class="product-card" style="padding: 2.5rem; min-height: 320px; box-shadow: var(--shadow-premium);">
             <div>
                 <div
-                    style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+                    style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
                     <div>
                         <span
-                            style="display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05rem; color: var(--text-muted); font-weight: 800; margin-bottom: 0.25rem;">Order
-                            Reference</span>
-                        <h3 style="margin:0; font-size: 1.25rem; font-weight: 800; color: var(--dark);">#CC-{{ order.id
+                            style="display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); font-weight: 800; margin-bottom: 0.4rem;">Shipment
+                            Ref</span>
+                        <h3 style="margin:0; font-size: 1.5rem; font-weight: 800; color: var(--dark);">#CC-{{ order.id
                             }}</h3>
                     </div>
                     <div style="text-align: right;">
                         <span
-                            style="display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05rem; color: var(--text-muted); font-weight: 800; margin-bottom: 0.25rem;">Earnings</span>
-                        <span style="font-size: 1.25rem; font-weight: 800; color: var(--primary);">₹{{
+                            style="display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); font-weight: 800; margin-bottom: 0.4rem;">Route
+                            Pay</span>
+                        <span style="font-size: 1.5rem; font-weight: 800; color: var(--primary);">₹{{
                             '{:,.0f}'.format(order.total_amount * 0.1) }}</span>
                     </div>
                 </div>
 
-                <div style="margin-bottom: 2rem; font-size: 0.95rem; color: var(--text-main);">
-                    <div style="display: flex; gap: 1rem; margin-bottom: 0.75rem;">
-                        <i class="fas fa-warehouse" style="color: var(--secondary); margin-top: 4px;"></i>
-                        <p><strong>Pickup:</strong> Aggregated from Farm Cluster</p>
+                <div style="margin-bottom: 2.5rem; font-size: 1rem;">
+                    <div style="display: flex; gap: 1.2rem; margin-bottom: 1rem; align-items: center;">
+                        <div
+                            style="width: 36px; height: 36px; border-radius: 50%; background: var(--secondary-light); color: var(--secondary); display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-warehouse"></i>
+                        </div>
+                        <p style="font-weight: 600; color: var(--dark);">Pickup: <span
+                                style="font-weight: 400; color: var(--text-muted);">Farm Cluster Alpha</span></p>
                     </div>
-                    <div style="display: flex; gap: 1rem; margin-bottom: 0.75rem;">
-                        <i class="fas fa-map-marker-alt" style="color: #ef4444; margin-top: 4px;"></i>
-                        <p><strong>Drop:</strong> {{ order.drop_address }}</p>
+                    <div style="display: flex; gap: 1.2rem; margin-bottom: 1rem; align-items: center;">
+                        <div
+                            style="width: 36px; height: 36px; border-radius: 50%; background: #fee2e2; color: #ef4444; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <p style="font-weight: 600; color: var(--dark);">Drop: <span
+                                style="font-weight: 400; color: var(--text-muted);">{{ order.drop_address }}</span></p>
                     </div>
-                    <div style="display: flex; gap: 1rem;">
-                        <i class="fas fa-wallet" style="color: var(--primary); margin-top: 4px;"></i>
-                        <p><strong>Collet:</strong> {{ order.payment_method }}</p>
+                    <div style="display: flex; gap: 1.2rem; align-items: center;">
+                        <div
+                            style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <p style="font-weight: 600; color: var(--dark);">Collection: <span
+                                style="font-weight: 400; color: var(--text-muted);">{{ order.payment_method }}</span>
+                        </p>
                     </div>
                 </div>
             </div>
 
             <a href="{{ url_for('pick_order', order_id=order.id) }}" class="btn-primary"
-                style="width: 100%; border-radius: var(--radius-md);">
-                Accept Order & Route
+                style="width: 100%; padding: 1rem; border-radius: 12px; font-weight: 800;">
+                <i class="fas fa-route"></i> &nbsp; Accept & Start Route
             </a>
         </div>
         {% endfor %}
     </div>
     {% else %}
     <div class="dashboard-card animate-up"
-        style="text-align: center; padding: 4rem; background: var(--white); border: 1px dotted rgba(0,0,0,0.1); box-shadow: none;">
-        <i class="fas fa-truck-loading" style="font-size: 3rem; color: var(--light); margin-bottom: 1.5rem;"></i>
-        <p style="color: var(--text-muted); font-weight: 600;">All orders have been assigned. New requests will appear
-            here in real-time.</p>
+        style="text-align: center; padding: 6rem 2rem; border: 2px dashed #e2e8f0; background: transparent; box-shadow: none;">
+        <i class="fas fa-truck-loading" style="font-size: 3.5rem; color: #cbd5e1; margin-bottom: 1.5rem;"></i>
+        <h3 style="color: var(--text-muted); font-size: 1.2rem;">All clear. No pending loads at the moment.</h3>
+        <p style="color: #94a3b8; font-size: 0.95rem;">New pickup requests will appear here instantly as they come in.
+        </p>
     </div>
     {% endif %}
 </div>
 
 <div style="margin-top: 5rem;">
-    <h2 style="margin-bottom: 2rem;" class="animate-up"><span
-            style="border-bottom: 3px solid var(--dark); padding-bottom: 8px;">My Active Deliveries</span></h2>
+    <h2 style="margin-bottom: 2.5rem;" class="animate-up">
+        <span style="border-bottom: 4px solid var(--dark); padding-bottom: 8px;">Manifest Log</span>
+    </h2>
+
     {% if my_deliveries %}
-    <div class="dashboard-card animate-up" style="padding: 0; overflow: hidden; animation-delay: 0.2s">
+    <div class="dashboard-card animate-up" style="padding: 0; overflow: hidden; box-shadow: var(--shadow-premium);">
         <div style="overflow-x: auto;">
-            <table class="dashboard-table" style="margin: 0; border-spacing: 0;">
-                <thead style="background: #f8fafc;">
-                    <tr>
-                        <th style="padding: 1.5rem;">Route ID</th>
-                        <th style="padding: 1.5rem;">Destination</th>
-                        <th style="padding: 1.5rem;">Current Status</th>
-                        <th style="padding: 1.5rem; text-align: right;">Operations</th>
+            <table style="width: 100%; border-collapse: collapse; min-width: 800px;">
+                <thead>
+                    <tr style="background: var(--dark); color: rgba(255,255,255,0.7); text-align: left;">
+                        <th
+                            style="padding: 1.5rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 800;">
+                            Route ID</th>
+                        <th
+                            style="padding: 1.5rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 800;">
+                            Destination Address</th>
+                        <th
+                            style="padding: 1.5rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 800;">
+                            Logistics Status</th>
+                        <th
+                            style="padding: 1.5rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 800; text-align: right;">
+                            Operations</th>
                     </tr>
                 </thead>
                 <tbody style="background: white;">
                     {% for order in my_deliveries %}
-                    <tr style="border-bottom: 1px solid #f1f5f9;">
-                        <td style="padding: 1.5rem; background: white;"><strong style="color: var(--dark);">#CC-{{
-                                order.id }}</strong></td>
-                        <td style="padding: 1.5rem; background: white;">{{ order.drop_address }}</td>
-                        <td style="padding: 1.5rem; background: white;">
+                    <tr style="border-bottom: 1px solid #f1f5f9; transition: var(--transition);"
+                        onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                        <td style="padding: 1.5rem;">
+                            <strong style="color: var(--dark); font-size: 1.1rem;">#CC-{{ order.id }}</strong>
+                        </td>
+                        <td style="padding: 1.5rem; color: var(--text-muted); font-weight: 500;">
+                            {{ order.drop_address }}
+                        </td>
+                        <td style="padding: 1.5rem;">
+                            {% set status_bg = 'var(--light)' %}
+                            {% set status_fg = 'var(--text-muted)' %}
+                            {% if order.status == 'Delivered' %}
+                            {% set status_bg = 'var(--primary-light)' %}
+                            {% set status_fg = 'var(--primary-dark)' %}
+                            {% endif %}
                             <span class="badge"
-                                style="background: {% if order.status == 'Delivered' %}var(--primary-light){% else %}var(--light){% endif %}; color: {% if order.status == 'Delivered' %}var(--primary){% else %}var(--dark){% endif %};">
+                                style="background: {{ status_bg }}; color: {{ status_fg }}; font-size: 0.8rem; font-weight: 800;">
                                 {{ order.status }}
                             </span>
                         </td>
-                        <td style="padding: 1.5rem; background: white; text-align: right;">
+                        <td style="padding: 1.5rem; text-align: right;">
                             {% if order.status != 'Delivered' %}
                             <a href="{{ url_for('complete_order', order_id=order.id) }}" class="btn-primary"
-                                style="font-size: 0.8rem; padding: 0.5rem 1.25rem;">Confirm Completion</a>
+                                style="font-size: 0.85rem; padding: 0.75rem 1.5rem; border-radius: 8px;">
+                                <i class="fas fa-check"></i> &nbsp; Confirm Drop
+                            </a>
                             {% else %}
-                            <span style="color: var(--primary); font-weight: 800;"><i class="fas fa-check-circle"></i>
-                                Completed</span>
+                            <span style="color: var(--primary); font-weight: 800; font-size: 0.9rem;">
+                                <i class="fas fa-check-circle"></i> Logged & Closed
+                            </span>
                             {% endif %}
                         </td>
                     </tr>
@@ -136,8 +177,8 @@
     </div>
     {% else %}
     <div class="dashboard-card animate-up"
-        style="text-align: center; padding: 4rem; border: 1px dotted rgba(0,0,0,0.1); box-shadow: none; animation-delay: 0.2s">
-        <p style="color: var(--text-muted); font-weight: 600;">You have no active routes in your log.</p>
+        style="text-align: center; padding: 4rem; border: 2px dashed #e2e8f0; background: transparent; box-shadow: none;">
+        <p style="color: var(--text-muted); font-weight: 600;">Your active delivery log is currently empty.</p>
     </div>
     {% endif %}
 </div>

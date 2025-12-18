@@ -4,10 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crop & Carry</title>
+    <title>Crop & Carry | Premium Farm-to-Table Marketplace</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="description" content="Directly source premium fresh produce from local sustainable farms.">
 </head>
 
 <body>
@@ -21,20 +21,21 @@
         <ul class="nav-links">
             <li><a href="{{ url_for('index') }}">Market</a></li>
             {% if current_user.is_authenticated %}
-            <li><a href="{{ url_for('profile') }}" class="btn-dashboard"
-                    style="background: var(--light); color: var(--text-main) !important; display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--glass-border);">
-                    <span
-                        style="width: 24px; height: 24px; background: var(--grad-primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800;">{{
-                        current_user.name[0].upper() }}</span>
-                    {{ current_user.name }}
-                </a></li>
-            <li><a href="{{ url_for('dashboard') }}">Dashboard ({{ current_user.role|title }})</a></li>
+            <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
             {% if current_user.role == 'consumer' %}
-            <li><a href="{{ url_for('view_cart') }}" class="{{ 'blink-animation' if session.get('cart') else '' }}">
-                    <i class="fas fa-shopping-basket"></i> Cart
+            <li><a href="{{ url_for('view_cart') }}">
+                    <i class="fas fa-shopping-basket"></i>
+                    {% if session.get('cart') %}
+                    <span
+                        style="background: var(--secondary); color: white; padding: 2px 6px; border-radius: 50%; font-size: 0.7rem; margin-left: 4px;">{{
+                        session.cart|length }}</span>
+                    {% endif %}
                 </a></li>
             {% endif %}
-            <li><a href="{{ url_for('logout') }}" class="btn-logout">Logout</a></li>
+            <li><a href="{{ url_for('profile') }}" class="btn-primary" style="padding: 0.5rem 1rem;">
+                    <i class="fas fa-user-circle"></i> &nbsp; {{ current_user.name.split()[0] }}
+                </a></li>
+            <li><a href="{{ url_for('logout') }}" style="color: #ef4444;">Logout</a></li>
             {% else %}
             <li><a href="{{ url_for('login') }}">Login</a></li>
             <li><a href="{{ url_for('signup') }}" class="btn-signup">Get Started</a></li>
@@ -50,18 +51,19 @@
     <div class="container">
         {% with messages = get_flashed_messages() %}
         {% if messages %}
-        <ul class="flashes">
+        <div class="flashes">
             {% for message in messages %}
-            <li class="flash-msg">{{ message }}</li>
+            <div class="flash-msg animate-up">
+                <i class="fas fa-info-circle"></i>
+                {{ message }}
+            </div>
             {% endfor %}
-        </ul>
+        </div>
         {% endif %}
         {% endwith %}
 
         {% block content %}{% endblock %}
     </div>
-
-    <!-- Footer removed as requested -->
 
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>

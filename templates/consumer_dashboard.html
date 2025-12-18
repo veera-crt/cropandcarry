@@ -1,19 +1,22 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;"
+<div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 3.5rem;"
     class="animate-up">
     <div>
-        <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">My Orders</h1>
-        <p style="color: var(--text-muted);">Track your fresh deliveries and order history.</p>
+        <div
+            style="display: inline-block; background: var(--secondary-light); color: #d97706; padding: 0.4rem 1rem; border-radius: var(--radius-full); font-weight: 800; font-size: 0.75rem; margin-bottom: 1rem; text-transform: uppercase;">
+            📦 Stay Updated</div>
+        <h1 style="font-size: 3rem; margin-bottom: 0.5rem;">Order History</h1>
+        <p style="color: var(--text-muted); font-size: 1.1rem;">Track your fresh deliveries and manage your seasonal
+            bounty.</p>
     </div>
-    <span class="badge" id="live-status"
+    <div class="badge" id="live-status"
         data-state='{ {% for o in orders %}"{{o.id}}":"{{o.status}}"{% if not loop.last %},{% endif %}{% endfor %} }'
-        style="background: var(--primary-light); color: var(--primary); padding: 0.75rem 1.5rem; font-size: 0.9rem; border: 1px solid var(--primary-glow);">
-        <i class="fas fa-circle"
-            style="color: #2ecc71; font-size: 0.6rem; vertical-align: middle; margin-right: 8px;"></i>
-        Monitoring Order Updates
-    </span>
+        style="background: var(--white); color: var(--primary-dark); padding: 0.8rem 1.5rem; font-size: 0.9rem; border: 1px solid var(--primary-glow); box-shadow: var(--shadow-card); display: flex; align-items: center; gap: 0.8rem;">
+        <i class="fas fa-circle" style="color: #2ecc71; font-size: 0.6rem; animation: pulse-glow 2s infinite;"></i>
+        <span style="font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;">Monitoring Updates</span>
+    </div>
 </div>
 
 <script>
@@ -46,84 +49,100 @@
 </script>
 
 {% if orders %}
-<div style="display: grid; gap: 2rem;" class="animate-up" style="animation-delay: 0.1s">
+<div style="display: grid; gap: 2.5rem;" class="animate-up" style="--i: 1">
     {% for order in orders %}
-    <div class="dashboard-card" style="padding: 0; overflow: hidden; border: 1px solid rgba(0,0,0,0.02);">
+    <div class="dashboard-card" style="padding: 0; overflow: hidden; border: none; box-shadow: var(--shadow-premium);">
         <div
-            style="padding: 2rem; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border-bottom: 1px solid #f1f5f9;">
-            <div style="display: flex; gap: 2rem; align-items: center;">
+            style="padding: 2.5rem; display: flex; justify-content: space-between; align-items: center; background: var(--dark); color: white;">
+            <div style="display: flex; gap: 3rem; align-items: center;">
                 <div>
                     <span
-                        style="display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 800; margin-bottom: 0.25rem;">Order
-                        Reference</span>
-                    <strong style="font-size: 1.25rem; font-weight: 800; color: var(--dark);">#CC-{{ order.id
-                        }}</strong>
+                        style="display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.5); font-weight: 800; margin-bottom: 0.4rem;">Order
+                        Ref</span>
+                    <strong style="font-size: 1.4rem; font-weight: 800;">#CC-{{ order.id }}</strong>
                 </div>
                 <div>
                     <span
-                        style="display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 800; margin-bottom: 0.25rem;">Date
-                        Placed</span>
-                    <strong style="color: var(--dark-alt);">{{ order.created_at.strftime('%b %d, %Y') }}</strong>
+                        style="display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.5); font-weight: 800; margin-bottom: 0.4rem;">Placed
+                        On</span>
+                    <strong style="font-size: 1.1rem; opacity: 0.9;">{{ order.created_at.strftime('%B %d, %Y')
+                        }}</strong>
                 </div>
             </div>
             <div style="text-align: right;">
                 <span
-                    style="display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 800; margin-bottom: 0.25rem;">Total
-                    Amount</span>
-                <strong style="font-size: 1.5rem; font-weight: 800; color: var(--primary);">₹{{
-                    '{:,.2f}'.format(order.total_amount) }}</strong>
+                    style="display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.5); font-weight: 800; margin-bottom: 0.4rem;">Total
+                    Paid</span>
+                <strong style="font-size: 2rem; font-weight: 800; color: var(--primary);">₹{{
+                    '{:,.0f}'.format(order.total_amount) }}</strong>
             </div>
         </div>
 
-        <div style="padding: 2rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                <div style="display: flex; align-items: center; gap: 1rem;">
+        <div style="padding: 3rem; background: var(--white);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem;">
+                <div style="display: flex; align-items: center; gap: 1.2rem;">
                     {% set status_color = 'var(--primary)' %}
                     {% if order.status == 'Cancelled' %} {% set status_color = '#ef4444' %} {% endif %}
                     {% if order.status == 'Pending' %} {% set status_color = 'var(--secondary)' %} {% endif %}
 
-                    <div
-                        style="width: 12px; height: 12px; border-radius: 50%; background: {{ status_color }}; box-shadow: 0 0 10px {{ status_color }}44;">
+                    <div style="position: relative; display: flex; align-items: center; justify-content: center;">
+                        <div style="width: 14px; height: 14px; border-radius: 50%; background: {{ status_color }};">
+                        </div>
+                        <div
+                            style="position: absolute; width: 24px; height: 24px; border-radius: 50%; border: 2px solid {{ status_color }}; opacity: 0.3; animation: pulse-glow 2s infinite;">
+                        </div>
                     </div>
-                    <span style="font-weight: 800; font-size: 1.1rem; color: var(--dark);">{{ order.status }}</span>
+                    <span style="font-weight: 800; font-size: 1.3rem; color: var(--dark); letter-spacing: -0.02em;">{{
+                        order.status }}</span>
 
                     {% if order.status in ['Pending', 'Ready'] %}
                     <a href="{{ url_for('cancel_order', order_id=order.id) }}"
-                        style="margin-left: 1rem; color: #ef4444; font-size: 0.85rem; font-weight: 700; text-decoration: underline;"
+                        style="margin-left: 1.5rem; color: #ef4444; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; text-decoration: underline;"
                         onclick="return confirm('Cancel this order?')">Cancel Order</a>
                     {% endif %}
                 </div>
 
-                <div style="display: flex; gap: 0.5rem;">
-                    <span class="badge" style="background: var(--light); color: var(--text-muted);">{{
-                        order.payment_method }}</span>
+                <div class="badge" style="background: var(--light); color: var(--text-muted); font-size: 0.8rem;">
+                    <i class="fas fa-wallet"></i> &nbsp; {{ order.payment_method }}
                 </div>
             </div>
 
-            <details style="border-top: 1px solid #f1f5f9; padding-top: 1.5rem;">
+            <details style="background: #f8fafc; border-radius: var(--radius-md); border: 1px solid #f1f5f9;">
                 <summary
-                    style="cursor: pointer; color: var(--primary); font-weight: 700; display: flex; align-items: center; gap: 0.5rem; list-style: none;">
-                    <i class="fas fa-chevron-down" style="font-size: 0.8rem;"></i>
-                    View Order Details ({{ order.items|length }} Items)
+                    style="cursor: pointer; padding: 1.5rem; color: var(--dark); font-weight: 800; display: flex; align-items: center; gap: 0.8rem; list-style: none; font-size: 1rem; border-bottom: 1px solid transparent;">
+                    <i class="fas fa-boxes" style="color: var(--primary);"></i>
+                    Order Manifest ({{ order.items|length }} Items)
+                    <i class="fas fa-chevron-down" style="font-size: 0.8rem; margin-left: auto; opacity: 0.5;"></i>
                 </summary>
-                <div style="margin-top: 1.5rem; background: #fafafa; border-radius: var(--radius-md); padding: 1.5rem;">
+                <div style="padding: 0 1.5rem 1.5rem;">
                     {% for item in order.items %}
                     <div
-                        style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid #eee;">
-                        <div style="display: flex; align-items: center; gap: 1rem;">
+                        style="display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 0; border-bottom: 1px solid #edf2f7;">
+                        <div style="display: flex; align-items: center; gap: 1.2rem;">
                             <div
-                                style="width: 40px; height: 40px; background: #fff; border-radius: 8px; overflow: hidden; border: 1px solid #eee;">
+                                style="width: 52px; height: 52px; background: white; border-radius: 12px; overflow: hidden; border: 1px solid #edf2f7; box-shadow: var(--shadow-soft);">
                                 <img src="{{ item.product.image_url }}"
                                     style="width: 100%; height: 100%; object-fit: cover;">
                             </div>
-                            <span style="font-weight: 600;">{{ item.quantity }}x {{ item.product.name }}</span>
+                            <div>
+                                <div style="font-weight: 700; color: var(--dark);">{{ item.product.name }}</div>
+                                <div style="font-size: 0.85rem; color: var(--text-muted);">{{ item.quantity }} x ₹{{
+                                    '{:,.0f}'.format(item.price) }}</div>
+                            </div>
                         </div>
-                        <span style="font-weight: 700;">₹{{ '{:,.2f}'.format(item.price * item.quantity) }}</span>
+                        <span style="font-weight: 800; font-size: 1.1rem; color: var(--dark);">₹{{
+                            '{:,.0f}'.format(item.price * item.quantity) }}</span>
                     </div>
                     {% endfor %}
-                    <div style="display: flex; justify-content: space-between; margin-top: 1rem; padding-top: 1rem;">
-                        <span style="color: var(--text-muted); font-size: 0.9rem;">Shipping Address: <strong
-                                style="color: var(--dark);">{{ current_user.address or 'Local Pickup' }}</strong></span>
+                    <div
+                        style="margin-top: 1.5rem; padding: 1.2rem; background: var(--white); border-radius: 12px; display: flex; align-items: center; gap: 1rem;">
+                        <div
+                            style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div style="font-size: 0.95rem; color: var(--text-muted);">Delivery to: <strong
+                                style="color: var(--dark);">{{ current_user.address or 'Primary Residence' }}</strong>
+                        </div>
                     </div>
                 </div>
             </details>
@@ -132,16 +151,18 @@
     {% endfor %}
 </div>
 {% else %}
-<div class="dashboard-card animate-up" style="text-align: center; padding: 5rem 2rem;">
+<div class="dashboard-card animate-up"
+    style="text-align: center; padding: 6rem 2rem; border: none; box-shadow: var(--shadow-premium);">
     <div
-        style="width: 80px; height: 80px; background: var(--primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem;">
-        <i class="fas fa-shopping-basket" style="font-size: 2rem; color: var(--primary);"></i>
+        style="width: 100px; height: 100px; background: var(--primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 2.5rem; color: var(--primary);">
+        <i class="fas fa-shopping-basket" style="font-size: 3rem;"></i>
     </div>
-    <h2 style="margin-bottom: 1rem;">No orders yet</h2>
+    <h2 style="font-size: 2.2rem; margin-bottom: 1rem;">No orders yet</h2>
     <p
-        style="color: var(--text-muted); margin-bottom: 2.5rem; max-width: 400px; margin-left: auto; margin-right: auto;">
-        Your basket is empty. Head to the marketplace to discover fresh seasonal produce from local farmers.</p>
-    <a href="{{ url_for('index') }}" class="btn-primary">Shop Fresh Produce</a>
+        style="color: var(--text-muted); margin-bottom: 3rem; max-width: 450px; margin-left: auto; margin-right: auto; font-size: 1.1rem;">
+        Your harvest basket is empty. Head to the marketplace to discover fresh seasonal produce from local farmers.</p>
+    <a href="{{ url_for('index') }}" class="btn-primary" style="padding: 1.25rem 3rem; font-size: 1.1rem;">Explore
+        Marketplace</a>
 </div>
 {% endif %}
 {% endblock %}

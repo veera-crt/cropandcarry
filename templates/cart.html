@@ -1,64 +1,67 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div style="margin-bottom: 3rem;" class="animate-up">
-    <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">Your Basket</h1>
-    <p style="color: var(--text-muted);">Review your fresh selections before we harvest them for you.</p>
+<div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 3.5rem;"
+    class="animate-up">
+    <div>
+        <div
+            style="display: inline-block; background: var(--primary-light); color: var(--primary-dark); padding: 0.4rem 1rem; border-radius: var(--radius-full); font-weight: 800; font-size: 0.75rem; margin-bottom: 1rem; text-transform: uppercase;">
+            🛒 Fresh Selection</div>
+        <h1 style="font-size: 3rem; margin-bottom: 0.5rem;">Your Basket</h1>
+        <p style="color: var(--text-muted); font-size: 1.1rem;">Review your seasonal selections before we harvest them
+            for you.</p>
+    </div>
 </div>
 
 {% if cart_items %}
-<div style="display: grid; grid-template-columns: 1fr 380px; gap: 3rem; align-items: flex-start;" class="animate-up">
+<div style="display: grid; grid-template-columns: 1fr 400px; gap: 3rem; align-items: flex-start;" class="animate-up"
+    style="--i: 1">
     <div style="display: grid; gap: 1.5rem;">
         {% for item in cart_items %}
-        <div class="cart-item"
-            style="background: var(--white); border-radius: var(--radius-xl); padding: 1.5rem; display: grid; grid-template-columns: 100px 1fr auto auto; align-items: center; gap: 2rem; border: 1px solid rgba(0,0,0,0.02); box-shadow: var(--shadow-premium);">
+        <div class="product-card"
+            style="padding: 1.5rem; display: grid; grid-template-columns: 120px 1fr auto; align-items: center; gap: 2rem; border-radius: var(--radius-md);">
             <div
-                style="width: 100px; height: 100px; border-radius: var(--radius-lg); background: #f1f5f9; overflow: hidden; border: 1px solid #f1f5f9;">
-                {% if item.product.image_url %}
+                style="width: 120px; height: 120px; border-radius: var(--radius-md); overflow: hidden; background: #f8fafc; border: 1px solid #edf2f7;">
                 <img src="{{ item.product.image_url }}" alt="{{ item.product.name }}"
                     style="width: 100%; height: 100%; object-fit: cover;">
-                {% else %}
-                <div
-                    style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #cbd5e1;">
-                    <i class="fas fa-leaf fa-2x"></i>
-                </div>
-                {% endif %}
             </div>
 
             <div>
-                <h3 style="font-size: 1.25rem; margin-bottom: 0.25rem;">{{ item.product.name }}</h3>
-                <p style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">
-                    <i class="fas fa-store" style="color: var(--primary);"></i> {{ item.product.farmer.name }}
-                </p>
-                <p style="font-size: 0.8rem; color: #94a3b8; margin-top: 0.5rem;">Unit Price: ₹{{ item.product.price }}
-                </p>
-            </div>
+                <h3 style="font-size: 1.4rem; margin-bottom: 0.4rem; font-weight: 800;">{{ item.product.name }}</h3>
+                <div
+                    style="display: flex; align-items: center; gap: 0.8rem; font-size: 0.9rem; color: var(--text-muted); font-weight: 600;">
+                    <i class="fas fa-tractor" style="color: var(--primary);"></i> {{ item.product.farmer.name }}
+                    <span style="opacity: 0.3;">|</span>
+                    <span>₹{{ item.product.price }} / {{ item.product.unit }}</span>
+                </div>
 
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                <form action="{{ url_for('update_cart_quantity') }}" method="POST"
-                    style="display: flex; align-items: center; background: var(--light); padding: 0.5rem; border-radius: var(--radius-full);">
-                    <input type="hidden" name="product_id" value="{{ item.product.id }}">
-                    <button type="button"
-                        onclick="const input = this.parentNode.querySelector('input[name=quantity]'); input.value = Math.max(1, parseInt(input.value)-1); this.form.submit();"
-                        style="background: none; border: none; padding: 0 0.5rem; cursor: pointer; color: var(--text-muted);"><i
-                            class="fas fa-minus-circle"></i></button>
-                    <input type="number" name="quantity" value="{{ item.quantity }}" min="1"
-                        max="{{ item.product.stock }}" readonly
-                        style="width: 40px; text-align: center; background: none; border: none; font-weight: 700; color: var(--dark);">
-                    <button type="button"
-                        onclick="const input = this.parentNode.querySelector('input[name=quantity]'); input.value = Math.min({{ item.product.stock }}, parseInt(input.value)+1); this.form.submit();"
-                        style="background: none; border: none; padding: 0 0.5rem; cursor: pointer; color: var(--primary);"><i
-                            class="fas fa-plus-circle"></i></button>
-                </form>
-                <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">{{ item.product.unit }}
+                <div
+                    style="margin-top: 1.2rem; display: inline-flex; align-items: center; background: #f1f5f9; padding: 0.4rem; border-radius: var(--radius-full); border: 1px solid #e2e8f0;">
+                    <form action="{{ url_for('update_cart_quantity') }}" method="POST"
+                        style="display: flex; align-items: center;">
+                        <input type="hidden" name="product_id" value="{{ item.product.id }}">
+                        <button type="button"
+                            onclick="const input = this.parentNode.querySelector('input[name=quantity]'); if(parseInt(input.value) > 1) { input.value = parseInt(input.value)-1; this.form.submit(); }"
+                            style="width: 32px; height: 32px; border-radius: 50%; background: white; border: none; cursor: pointer; color: var(--dark); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-soft);">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <input type="number" name="quantity" value="{{ item.quantity }}" min="1"
+                            max="{{ item.product.stock }}" readonly
+                            style="width: 45px; text-align: center; background: none; border: none; font-weight: 800; font-size: 1rem; color: var(--dark);">
+                        <button type="button"
+                            onclick="const input = this.parentNode.querySelector('input[name=quantity]'); if(parseInt(input.value) < {{ item.product.stock }}) { input.value = parseInt(input.value)+1; this.form.submit(); }"
+                            style="width: 32px; height: 32px; border-radius: 50%; background: var(--dark); border: none; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-soft);">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </form>
                 </div>
             </div>
 
             <div style="text-align: right;">
-                <div style="font-size: 1.25rem; font-weight: 800; color: var(--dark); margin-bottom: 0.5rem;">₹{{
-                    '{:,.2f}'.format(item.total) }}</div>
+                <div style="font-size: 1.6rem; font-weight: 800; color: var(--dark); margin-bottom: 0.8rem;">₹{{
+                    '{:,.0f}'.format(item.total) }}</div>
                 <a href="{{ url_for('remove_from_cart', id=item.product.id) }}"
-                    style="color: #64748b; font-size: 0.9rem; transition: var(--transition);" class="h-text-red">
+                    style="color: #ef4444; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.5rem; justify-content: flex-end;">
                     <i class="fas fa-trash-alt"></i> Remove
                 </a>
             </div>
@@ -67,64 +70,70 @@
     </div>
 
     <div class="dashboard-card"
-        style="padding: 2.5rem; position: sticky; top: 6rem; background: var(--dark); color: var(--white); border: none;">
-        <h2 style="color: var(--white); margin-bottom: 2rem;">Order Summary</h2>
+        style="padding: 2.5rem; position: sticky; top: 6rem; background: var(--dark); color: white; border: none; box-shadow: var(--shadow-premium);">
+        <h2 style="color: white; margin-bottom: 2rem; font-size: 1.8rem;">Checkout</h2>
 
         <div
-            style="display: flex; justify-content: space-between; margin-bottom: 1.25rem; color: rgba(255,255,255,0.6); font-weight: 600;">
+            style="display: flex; justify-content: space-between; margin-bottom: 1.5rem; color: rgba(255,255,255,0.6); font-weight: 600;">
             <span>Subtotal</span>
-            <span style="color: var(--white);">₹{{ '{:,.2f}'.format(total) }}</span>
+            <span style="color: white;">₹{{ '{:,.0f}'.format(total) }}</span>
         </div>
         <div
-            style="display: flex; justify-content: space-between; margin-bottom: 1.25rem; color: rgba(255,255,255,0.6); font-weight: 600;">
-            <span>Delivery Fee</span>
-            <span style="color: var(--primary);">FREE</span>
+            style="display: flex; justify-content: space-between; margin-bottom: 1.5rem; color: rgba(255,255,255,0.6); font-weight: 600;">
+            <span>Logistics & Handling</span>
+            <span style="color: var(--primary); font-weight: 800;">FREE</span>
         </div>
 
         <div
-            style="margin: 2rem 0; padding: 2rem 0; border-top: 1px solid rgba(255,255,255,0.1); border-bottom: 1px solid rgba(255,255,255,0.1);">
+            style="margin: 2rem 0; padding: 2.5rem 0; border-top: 1px solid rgba(255,255,255,0.1); border-bottom: 1px solid rgba(255,255,255,0.1);">
             <div style="display: flex; justify-content: space-between; align-items: baseline;">
-                <span style="font-size: 1.1rem; font-weight: 600;">Total</span>
-                <span style="font-size: 2.25rem; font-weight: 800; color: var(--primary);">₹{{ '{:,.2f}'.format(total)
+                <span style="font-size: 1.25rem; font-weight: 600; opacity: 0.8;">Total Amount</span>
+                <span style="font-size: 2.5rem; font-weight: 800; color: var(--primary);">₹{{ '{:,.0f}'.format(total)
                     }}</span>
             </div>
         </div>
 
         <form action="{{ url_for('checkout') }}" method="POST">
-            <div class="form-group" style="margin-bottom: 2rem;">
+            <div class="form-group" style="margin-bottom: 2.5rem;">
                 <label
-                    style="color: rgba(255,255,255,0.6); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">Select
-                    Payment Method</label>
-                <div style="position: relative; margin-top: 0.75rem;">
+                    style="color: rgba(255,255,255,0.5); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 800;">Payment
+                    Method</label>
+                <div style="position: relative; margin-top: 1rem;">
                     <select name="payment_method"
-                        style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--white); appearance: none; -webkit-appearance: none;">
+                        style="width: 100%; padding: 1.25rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; font-weight: 700; appearance: none;">
                         <option value="UPI">UPI / Digital Wallet</option>
                         <option value="COD">Cash on Delivery</option>
                     </select>
                     <i class="fas fa-chevron-down"
-                        style="position: absolute; right: 1.25rem; top: 50%; transform: translateY(-50%); pointer-events: none; color: rgba(255,255,255,0.4);"></i>
+                        style="position: absolute; right: 1.25rem; top: 1.35rem; pointer-events: none; color: rgba(255,255,255,0.4);"></i>
                 </div>
             </div>
-            <button type="submit" class="btn-primary" style="width: 100%; height: 4rem; font-size: 1.2rem;">
-                <i class="fas fa-check-circle"></i> &nbsp; Finalize Checkout
+            <button type="submit" class="btn-primary"
+                style="width: 100%; padding: 1.25rem; font-size: 1.25rem; border-radius: 16px;">
+                <i class="fas fa-check-double"></i> &nbsp; Place Order
             </button>
         </form>
-        <p
-            style="text-align: center; color: rgba(255,255,255,0.4); font-size: 0.8rem; margin-top: 1.5rem; font-weight: 500;">
-            <i class="fas fa-shield-alt"></i> Secure checkout powered by Stripe
-        </p>
+
+        <div
+            style="text-align: center; color: rgba(255,255,255,0.4); font-size: 0.8rem; margin-top: 2rem; display: flex; align-items: center; justify-content: center; gap: 0.6rem;">
+            <i class="fas fa-shield-alt" style="color: var(--primary);"></i>
+            <span>Encrypted Secure Checkout</span>
+        </div>
     </div>
 </div>
 {% else %}
-<div class="dashboard-card animate-up" style="text-align: center; padding: 6rem 2rem;">
+<div class="dashboard-card animate-up"
+    style="text-align: center; padding: 6rem 2rem; border-radius: var(--radius-xl); box-shadow: var(--shadow-premium); border: none;">
     <div
-        style="width: 100px; height: 100px; background: var(--primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 2.5rem;">
-        <i class="fas fa-shopping-cart" style="font-size: 2.5rem; color: var(--primary);"></i>
+        style="width: 100px; height: 100px; background: var(--primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 2.5rem; color: var(--primary);">
+        <i class="fas fa-shopping-basket" style="font-size: 3rem;"></i>
     </div>
-    <h2 style="font-size: 2rem; margin-bottom: 1rem;">Your basket is empty</h2>
-    <p style="color: var(--text-muted); margin-bottom: 3rem; max-width: 450px; margin-left: auto; margin-right: auto;">
-        It looks like you haven't added anything yet. Explore our market for the freshest seasonal produce.</p>
-    <a href="{{ url_for('index') }}" class="btn-primary" style="padding: 1rem 2.5rem;">Go to Market</a>
+    <h2 style="font-size: 2.2rem; margin-bottom: 1rem;">Your harvest is empty</h2>
+    <p
+        style="color: var(--text-muted); margin-bottom: 3rem; max-width: 450px; margin-left: auto; margin-right: auto; font-size: 1.1rem;">
+        It looks like you haven't added any fresh seasonal produce yet. Our farmers have plenty to offer!</p>
+    <a href="{{ url_for('index') }}" class="btn-primary" style="padding: 1.25rem 3.5rem; font-size: 1.1rem;">Go to
+        Marketplace</a>
 </div>
 {% endif %}
 {% endblock %}
