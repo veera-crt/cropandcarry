@@ -16,6 +16,7 @@ from models import User, Product, Order, OrderItem, Category, FarmerProfile, \
                    DeliveryPartnerProfile, Transaction, Notification, Review, \
                    CartItem, WishlistItem, Voucher, SupportTicket, AddressBook, InventoryAudit
 from database_config import Config
+from sqlalchemy import text
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -504,10 +505,18 @@ if not os.getenv('VERCEL'):
             scheduler.add_job(id='daily_report', func=send_daily_reports, trigger='interval', hours=24)
     except Exception as e: print(f"Scheduler failed: {e}")
 
-# Create database tables
+# Create database tables and perform migrations
 with app.app_context():
-    try: db.create_all()
-    except Exception as e: print(f"DB Creation failed: {e}")
+    try: 
+        db.create_all()
+        # Incremental migrations for existing tables
+        db.session.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS address TEXT"))
+        db.session.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS category_id INTEGER"))
+        db.session.commit()
+        print("Database initialized and migrated successfully.")
+    except Exception as e: 
+        print(f"DB Initialization/Migration failed: {e}")
+        db.session.rollback()
 
 if __name__ == '__main__':
     app.run(debug=True, port=3000)
