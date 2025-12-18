@@ -307,6 +307,16 @@ def dashboard():
         orders = Order.query.filter_by(consumer_id=current_user.id).all()
         return render_template('consumer_dashboard.html', orders=orders)
 
+@app.route('/api/delivery/available')
+@login_required
+def get_available_count():
+    if current_user.role != 'delivery': return {'count': 0}, 403
+    count = Order.query.filter(
+        Order.status.in_(['Pending', 'Ready']),
+        Order.delivery_partner_id.is_(None)
+    ).count()
+    return {'count': count}
+
 @app.route('/delivery/pick/<int:order_id>')
 @login_required
 def pick_order(order_id):
