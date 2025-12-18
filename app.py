@@ -5,107 +5,27 @@ from datetime import datetime, timedelta
 import io
 from threading import Thread
 from flask import Flask, render_template, redirect, url_for, request, flash, session, current_app
-from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
-from flask_mail import Mail, Message
-from flask_apscheduler import APScheduler
+from flask_login import login_user, login_required, logout_user, current_user
+from flask_mail import Message
 from fpdf import FPDF
 from werkzeug.security import generate_password_hash, check_password_hash
-from dotenv import load_dotenv
 
-load_dotenv()
+from extensions import db, mail, login_manager, scheduler
+from models import User, Product, Order, OrderItem, Category, FarmerProfile, \
+                   DeliveryPartnerProfile, Transaction, Notification, Review, \
+                   CartItem, WishlistItem, Voucher, SupportTicket, AddressBook, InventoryAudit
+from database_config import Config
 
 app = Flask(__name__)
-scheduler = APScheduler()
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL').replace("postgres://", "postgresql://", 1) if os.getenv('DATABASE_URL') else "sqlite:///site.db"
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config.from_object(Config)
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = Config.get_engine_options()
 
-# Optimized Engine Options
-engine_options = {
-    "pool_pre_ping": True,
-    "pool_recycle": 300,
-}
-
-# Only add connect_args for PostgreSQL
-if app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgresql'):
-    engine_options["connect_args"] = {
-        "keepalives": 1,
-        "keepalives_idle": 30,
-        "keepalives_interval": 10,
-        "keepalives_count": 5,
-    }
-
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = engine_options
-
-# Mail Config
-app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER')
-app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 587))
-app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS') == 'True'
-app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
-app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
-app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_USERNAME')
-
-db = SQLAlchemy(app)
-mail = Mail(app)
-login_manager = LoginManager(app)
+# Initialize Extensions
+db.init_app(app)
+mail.init_app(app)
+login_manager.init_app(app)
 login_manager.login_view = 'login'
-
-# Models
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(256), nullable=False)
-    role = db.Column(db.String(20), nullable=False) # 'consumer', 'farmer', 'delivery'
-    is_verified = db.Column(db.Boolean, default=False)
-    name = db.Column(db.String(100))
-    phone = db.Column(db.String(20))
-    address = db.Column(db.Text)
-    otp_code = db.Column(db.String(6))
-    otp_expiry = db.Column(db.DateTime)
-    
-    # Relationships
-    # orders relationship removed to avoid ambiguity, defined in Order model
-    products = db.relationship('Product', backref='farmer', lazy=True)
-
-class Product(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    farmer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    name = db.Column(db.String(100), nullable=False)
-    description = db.Column(db.Text)
-    price = db.Column(db.Float, nullable=False)
-    stock = db.Column(db.Integer, default=0)
-    unit = db.Column(db.String(20), default='Count') # Kg, L, Count
-    image_url = db.Column(db.Text) # URL to image or Base64 string
-    total_sales = db.Column(db.Integer, default=0)
-    is_deleted = db.Column(db.Boolean, default=False)
-
-class Order(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    consumer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    total_amount = db.Column(db.Float, nullable=False)
-    status = db.Column(db.String(50), default='Pending') # Pending, Ready, Out for Delivery, Delivered
-    payment_method = db.Column(db.String(20)) # UPI, COD
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    pickup_address = db.Column(db.Text) # aggregated from farmers
-    drop_address = db.Column(db.Text)
-    delivery_partner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    
-    items = db.relationship('OrderItem', backref='order', lazy=True)
-    
-    # Explicit relationships
-    consumer = db.relationship('User', foreign_keys=[consumer_id], backref=db.backref('orders', lazy=True))
-    delivery_partner = db.relationship('User', foreign_keys=[delivery_partner_id], backref=db.backref('deliveries', lazy=True))
-
-class OrderItem(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=False)
-    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
-    quantity = db.Column(db.Integer, nullable=False)
-    price = db.Column(db.Float, nullable=False)
-    
-    product = db.relationship('Product')
 
 # Helper Functions
 @login_manager.user_loader
@@ -117,8 +37,6 @@ def send_email(msg):
         mail.send(msg)
     except Exception as e:
         print(f"Error sending email: {e}")
-        # In production, you might want to log this deeper
-        # For now, we print to logs which Vercel captures
 
 def send_otp(user):
     otp = ''.join(random.choices(string.digits, k=6))
@@ -129,7 +47,6 @@ def send_otp(user):
     msg = Message('Crop & Carry Verification Code', recipients=[user.email])
     msg.body = f'Your verification code is {otp}'
     
-    # Send Synchronously for Vercel reliability
     try:
         mail.send(msg)
     except Exception as e:
@@ -152,7 +69,6 @@ def send_receipt(order):
     
     msg.body += '\nWe will notify you when it is out for delivery.'
     
-    # Send Synchronously
     try:
         mail.send(msg)
     except Exception as e:
@@ -168,7 +84,6 @@ def send_cancellation_email(order):
     
     If you have paid via UPI, the refund will be processed within 5-7 business days.
     '''
-    # Send Synchronously
     try:
         mail.send(msg)
     except Exception as e:
@@ -216,9 +131,8 @@ def verify_otp():
         user = User.query.get(user_id)
         
         if user and user.otp_code == otp:
-            # OTP is valid (no time limit check)
             user.is_verified = True
-            user.otp_code = None # Clear OTP after usage
+            user.otp_code = None
             user.otp_expiry = None
             db.session.commit()
             login_user(user)
@@ -280,8 +194,6 @@ def logout():
 def dashboard():
     if current_user.role == 'farmer':
         products = Product.query.filter_by(farmer_id=current_user.id, is_deleted=False).all()
-        
-        # Optimized Analytics using SQL Aggregation
         stats = db.session.query(
             func.sum(Product.total_sales).label('total_sales'),
             func.sum(Product.total_sales * Product.price).label('sales_amount')
@@ -293,8 +205,6 @@ def dashboard():
         return render_template('farmer_dashboard.html', products=products, total_sales=total_sales, sales_amount=sales_amount)
     
     elif current_user.role == 'delivery':
-        # Show all open orders (Pending/Ready) that haven't been picked up yet
-        # Once any order is placed (Pending), it is pushed to all delivery partners.
         available_orders = Order.query.filter(
             Order.status.in_(['Pending', 'Ready']),
             Order.delivery_partner_id.is_(None)
@@ -329,7 +239,6 @@ def get_farmer_stats():
 def get_consumer_updates():
     if current_user.role != 'consumer': return {'statuses': {}}, 403
     orders = Order.query.filter_by(consumer_id=current_user.id).all()
-    # Simple dictionary of ID -> Status to detect changes
     return {'statuses': {str(o.id): o.status for o in orders}}
 
 @app.route('/delivery/pick/<int:order_id>')
@@ -343,7 +252,7 @@ def pick_order(order_id):
         return redirect(url_for('dashboard'))
         
     order.delivery_partner_id = current_user.id
-    order.status = 'Out for Delivery' # Assuming checking it out means they are going to deliver it
+    order.status = 'Out for Delivery'
     db.session.commit()
     flash('Order assigned to you successfully!')
     return redirect(url_for('dashboard'))
@@ -358,7 +267,7 @@ def add_product():
     price = float(request.form.get('price'))
     stock = int(request.form.get('stock'))
     unit = request.form.get('unit')
-    image_url = request.form.get('image_url') # Link or file upload handling logic if implemented
+    image_url = request.form.get('image_url')
     description = request.form.get('description')
     
     new_product = Product(farmer_id=current_user.id, name=name, price=price, stock=stock, unit=unit, image_url=image_url, description=description)
@@ -385,11 +294,9 @@ def delete_product(id):
     if product.farmer_id != current_user.id:
         return 'Unauthorized', 403
     
-    # Soft delete instead of hard delete to preserve order history
     product.is_deleted = True
     db.session.commit()
     flash('Product deleted successfully')
-    
     return redirect(url_for('dashboard'))
 
 @app.route('/add-to-cart/<int:id>')
@@ -398,16 +305,10 @@ def add_to_cart(id):
         session['cart'] = {}
     
     cart = session['cart']
-    # Migration handling if cart was list
-    if isinstance(cart, list):
-        cart = {}
+    if isinstance(cart, list): cart = {}
     
     product_id = str(id)
-    if product_id in cart:
-        cart[product_id] += 1
-    else:
-        cart[product_id] = 1
-        
+    cart[product_id] = cart.get(product_id, 0) + 1
     session['cart'] = cart
     flash('Added to cart')
     return redirect(url_for('index'))
@@ -416,15 +317,13 @@ def add_to_cart(id):
 def update_cart_quantity():
     product_id = request.form.get('product_id')
     quantity = int(request.form.get('quantity'))
-    
     cart = session.get('cart', {})
-    if isinstance(cart, list): cart = {} # Safety
+    if isinstance(cart, list): cart = {}
     
     if quantity > 0:
         cart[product_id] = quantity
     else:
         cart.pop(product_id, None)
-        
     session['cart'] = cart
     return redirect(url_for('view_cart'))
 
@@ -432,9 +331,7 @@ def update_cart_quantity():
 def remove_from_cart(id):
     cart = session.get('cart', {})
     if isinstance(cart, list): cart = {}
-    
-    product_id = str(id)
-    cart.pop(product_id, None)
+    cart.pop(str(id), None)
     session['cart'] = cart
     return redirect(url_for('view_cart'))
 
@@ -442,23 +339,16 @@ def remove_from_cart(id):
 def view_cart():
     cart = session.get('cart', {})
     if isinstance(cart, list): cart = {}
-    
     cart_ids = [int(k) for k in cart.keys()]
     products = Product.query.filter(Product.id.in_(cart_ids)).all() if cart_ids else []
     
     cart_items = []
     total = 0
-    
     for p in products:
         qty = cart.get(str(p.id), 0)
         item_total = p.price * qty
         total += item_total
-        cart_items.append({
-            'product': p,
-            'quantity': qty,
-            'total': item_total
-        })
-        
+        cart_items.append({'product': p, 'quantity': qty, 'total': item_total})
     return render_template('cart.html', cart_items=cart_items, total=total)
 
 @app.route('/checkout', methods=['POST'])
@@ -466,26 +356,19 @@ def view_cart():
 def checkout():
     cart = session.get('cart', {})
     if isinstance(cart, list): cart = {}
-        
-    if not cart:
-        return redirect(url_for('index'))
+    if not cart: return redirect(url_for('index'))
         
     payment_method = request.form.get('payment_method')
-    
     cart_ids = [int(k) for k in cart.keys()]
     products = Product.query.filter(Product.id.in_(cart_ids)).all()
     
-    # Calculate total and validate stock
     total_amount = 0
     final_cart_items = []
-    
     for p in products:
         qty = cart.get(str(p.id), 0)
-        
         if qty > p.stock:
             flash(f'Insufficient stock for {p.name}. Only {p.stock} available.')
             return redirect(url_for('view_cart'))
-            
         total_amount += (p.price * qty)
         final_cart_items.append((p, qty))
     
@@ -501,36 +384,28 @@ def checkout():
     
     db.session.commit()
     session.pop('cart', None)
-    
     send_receipt(order)
-    flash('Order placed successfully! Receipt sent to email.')
+    flash('Order placed successfully!')
     return redirect(url_for('dashboard'))
 
 @app.route('/cancel-order/<int:order_id>')
 @login_required
 def cancel_order(order_id):
     order = Order.query.get_or_404(order_id)
-    
-    # Only consumer who owns the order can cancel, and only if it's still pending/ready
     if order.consumer_id != current_user.id:
         flash('Unauthorized action')
         return redirect(url_for('dashboard'))
-        
     if order.status not in ['Pending', 'Ready']:
-        flash('Cannot cancel order that is already out for delivery or delivered.')
+        flash('Cannot cancel order that is already in progress.')
         return redirect(url_for('dashboard'))
         
     order.status = 'Cancelled'
-    
-    # Restore stock
     for item in order.items:
         item.product.stock += item.quantity
         item.product.total_sales -= item.quantity
-        
     db.session.commit()
-    
     send_cancellation_email(order)
-    flash('Order cancelled successfully. Confirmation sent to email.')
+    flash('Order cancelled successfully.')
     return redirect(url_for('dashboard'))
 
 @app.route('/delivery/complete/<int:order_id>')
@@ -546,13 +421,10 @@ def complete_order(order_id):
 @app.route('/update-profile', methods=['POST'])
 @login_required
 def update_profile():
-    phone = request.form.get('phone')
-    address = request.form.get('address')
-    
-    current_user.phone = phone
-    current_user.address = address
+    current_user.phone = request.form.get('phone')
+    # Backward compatibility with Address model if needed, but for now we update User.address string
+    current_user.address = request.form.get('address')
     db.session.commit()
-    
     flash('Profile updated successfully!')
     return redirect(url_for('profile'))
 
@@ -568,14 +440,12 @@ def generate_pdf_report(farmer_name, sales_data, total_amount):
     pdf.cell(200, 10, txt=f"Daily Sales Report for {farmer_name}", ln=1, align="C")
     pdf.cell(200, 10, txt=f"Date: {datetime.utcnow().strftime('%Y-%m-%d')}", ln=1, align="C")
     pdf.ln(10)
-    
     pdf.set_font("Arial", 'B', 10)
     pdf.cell(100, 10, "Product", 1)
     pdf.cell(30, 10, "Qty", 1)
     pdf.cell(30, 10, "Price", 1)
     pdf.cell(30, 10, "Total", 1)
     pdf.ln()
-    
     pdf.set_font("Arial", size=10)
     for item in sales_data:
         pdf.cell(100, 10, item['name'], 1)
@@ -583,72 +453,45 @@ def generate_pdf_report(farmer_name, sales_data, total_amount):
         pdf.cell(30, 10, f"{item['price']:.2f}", 1)
         pdf.cell(30, 10, f"{item['total']:.2f}", 1)
         pdf.ln()
-        
     pdf.ln(5)
     pdf.set_font("Arial", 'B', 12)
     pdf.cell(160, 10, "Total Amount Due (Within 24h):", 0)
     pdf.cell(30, 10, f"INR {total_amount:.2f}", 0)
-    
     return pdf.output(dest='S').encode('latin-1')
 
 def send_daily_reports():
     with app.app_context():
-        # Get all farmers
         farmers = User.query.filter_by(role='farmer').all()
         yesterday = datetime.utcnow() - timedelta(days=1)
-        
         for farmer in farmers:
-            # Find sold items for this farmer in the last 24h
-            # This is a bit complex with current schema (Order -> OrderItem -> Product -> Farmer)
-            # We iterate orders created > yesterday
-            
             recent_orders = Order.query.filter(Order.created_at >= yesterday).all()
             sales_data = []
             total_amount = 0.0
-            
             for order in recent_orders:
                 for item in order.items:
                     if item.product.farmer_id == farmer.id:
-                        sales_data.append({
-                            'name': item.product.name,
-                            'qty': item.quantity,
-                            'price': item.product.price,
-                            'total': item.quantity * item.product.price
-                        })
+                        sales_data.append({'name': item.product.name, 'qty': item.quantity, 'price': item.product.price, 'total': item.quantity * item.product.price})
                         total_amount += (item.quantity * item.product.price)
-            
             if sales_data:
                 pdf_content = generate_pdf_report(farmer.name, sales_data, total_amount)
-                
-                msg = Message(
-                    subject=f"Daily Sales Report - {datetime.utcnow().strftime('%Y-%m-%d')}",
-                    recipients=[farmer.email],
-                    body=f"Hello {farmer.name},\n\nPlease find attached your daily sales report.\nTotal Amount: ₹{total_amount}\n\nThis amount will be transferred to your account within 24 hours."
-                )
+                msg = Message(subject=f"Daily Sales Report - {datetime.utcnow().strftime('%Y-%m-%d')}", recipients=[farmer.email], body=f"Hello {farmer.name},\n\nPlease find attached your daily sales report.")
                 msg.attach("Daily_Report.pdf", "application/pdf", pdf_content)
-                try:
-                    mail.send(msg)
-                    print(f"Report sent to {farmer.name}")
-                except Exception as e:
-                    print(f"Failed to send report to {farmer.email}: {e}")
+                try: mail.send(msg)
+                except Exception as e: print(f"Failed to send report: {e}")
 
-# Initialize Scheduler
+# Scheduler Setup
 if not os.getenv('VERCEL'):
     try:
         scheduler.init_app(app)
         scheduler.start()
-        # Schedule job to run every 24 hours
         if not scheduler.get_job('daily_report'):
             scheduler.add_job(id='daily_report', func=send_daily_reports, trigger='interval', hours=24)
-    except Exception as e:
-        print(f"Scheduler failed to start: {e}")
+    except Exception as e: print(f"Scheduler failed: {e}")
 
-# App Context - Database Creation
+# Create database tables
 with app.app_context():
-    try:
-        db.create_all()
-    except Exception as e:
-        print(f"Database creation failed: {e}")
+    try: db.create_all()
+    except Exception as e: print(f"DB Creation failed: {e}")
 
 if __name__ == '__main__':
     app.run(debug=True, port=3000)
