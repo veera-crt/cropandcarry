@@ -233,7 +233,7 @@ def dashboard():
         return render_template('delivery_dashboard.html', available=available_orders, my_deliveries=my_deliveries)
     
     else: # Consumer
-        orders = Order.query.filter_by(consumer_id=current_user.id).all()
+        orders = Order.query.filter_by(consumer_id=current_user.id).order_by(Order.created_at.desc()).all()
         return render_template('consumer_dashboard.html', orders=orders)
 
 @app.route('/api/delivery/available')

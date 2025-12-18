@@ -137,8 +137,11 @@
                             style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center;">
                             <i class="fas fa-map-marker-alt"></i>
                         </div>
-                        <div style="font-size: 0.95rem; color: var(--text-muted);">Delivery to: <strong
-                                style="color: var(--dark);">{{ current_user.address or 'Primary Residence' }}</strong>
+                        <div style="font-size: 0.95rem; color: var(--text-muted);">
+                            Delivery to: <strong style="color: var(--dark);">{{ order.drop_address or 'Primary
+                                Residence' }}</strong>
+                            {% if order.drop_phone %} <br> <span style="font-size: 0.85rem; opacity: 0.8;">Contact: {{
+                                order.drop_phone }}</span> {% endif %}
                         </div>
                     </div>
                 </div>
