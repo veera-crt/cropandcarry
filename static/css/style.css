@@ -117,6 +117,7 @@ h6 {
 
 .animate-up {
     animation: fadeInUp 0.6s ease-out forwards;
+    animation-delay: calc(var(--i, 0) * 0.1s);
 }
 
 /* Layout */
@@ -402,6 +403,45 @@ h6 {
     animation: fadeInUp 0.5s ease-out;
     background: var(--primary-light) !important;
     border: 1px solid var(--primary-glow);
+}
+
+/* Category Filters */
+.filter-btn {
+    background: var(--white);
+    color: var(--primary);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-full);
+    font-weight: 600;
+    font-size: 0.85rem;
+    border: 1px solid var(--glass-border);
+    transition: var(--transition);
+    text-decoration: none;
+    display: inline-block;
+}
+
+.filter-btn:hover {
+    background: var(--primary-light);
+    transform: translateY(-1px);
+}
+
+.filter-btn.active {
+    background: var(--primary) !important;
+    color: var(--white) !important;
+    border-color: var(--primary);
+}
+
+/* Product Content */
+.product-desc {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+    height: 3rem;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
 /* Authentication */

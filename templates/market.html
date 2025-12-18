@@ -11,16 +11,12 @@
     <h2><span style="border-bottom: 3px solid var(--primary); padding-bottom: 8px;">Explore Marketplace</span></h2>
     <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: flex-end;">
         <a href="{{ url_for('index') }}"
-            style="background: {% if not request.args.get('category_id') %}var(--primary){% else %}var(--white){% endif %}; 
-                  color: {% if not request.args.get('category_id') %}var(--white){% else %}var(--primary){% endif %}; 
-                  padding: 0.5rem 1rem; border-radius: var(--radius-full); font-weight: 600; font-size: 0.85rem; border: 1px solid var(--glass-border); transition: var(--transition);">
+            class="filter-btn {% if not request.args.get('category_id') %}active{% endif %}">
             All
         </a>
         {% for cat in categories %}
         <a href="{{ url_for('index', category_id=cat.id) }}"
-            style="background: {% if request.args.get('category_id') == cat.id|string %}var(--primary){% else %}var(--white){% endif %}; 
-                  color: {% if request.args.get('category_id') == cat.id|string %}var(--white){% else %}var(--primary){% endif %}; 
-                  padding: 0.5rem 1rem; border-radius: var(--radius-full); font-weight: 600; font-size: 0.85rem; border: 1px solid var(--glass-border); transition: var(--transition);">
+            class="filter-btn {% if request.args.get('category_id') == cat.id|string %}active{% endif %}">
             {{ cat.name }}
         </a>
         {% endfor %}
@@ -29,7 +25,7 @@
 
 <div class="product-grid">
     {% for product in products %}
-    <div class="product-card animate-up" style="animation-delay: {{ loop.index0 * 0.1 }}s">
+    <div class="product-card animate-up" style="--i: {{ loop.index0 }}">
         <div class="img-wrapper">
             {% if product.image_url %}
             <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-img">
@@ -47,8 +43,7 @@
 
         <div class="product-info">
             <h3 class="product-title">{{ product.name }}</h3>
-            <p
-                style="font-size: 0.875rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 1.5rem; height: 3rem; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+            <p class="product-desc">
                 {{ product.description or 'Freshly harvested produce from local sustainable farms.' }}
             </p>
 
