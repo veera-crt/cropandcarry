@@ -80,16 +80,13 @@
 
         <div style="padding: 3rem; background: var(--white);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem;">
-                <div style="display: flex; align-items: center; gap: 1.2rem;">
-                    {% set status_color = 'var(--primary)' %}
-                    {% if order.status == 'Cancelled' %} {% set status_color = '#ef4444' %} {% endif %}
-                    {% if order.status == 'Pending' %} {% set status_color = 'var(--secondary)' %} {% endif %}
-
+                <div
+                    style="display: flex; align-items: center; gap: 1.2rem; --sc: {% if order.status == 'Cancelled' %}#ef4444{% elif order.status == 'Pending' %}var(--secondary){% else %}var(--primary){% endif %};">
                     <div style="position: relative; display: flex; align-items: center; justify-content: center;">
-                        <div style="width: 14px; height: 14px; border-radius: 50%; background: {{ status_color }};">
+                        <div style="width: 14px; height: 14px; border-radius: 50%; background: var(--sc);">
                         </div>
                         <div
-                            style="position: absolute; width: 24px; height: 24px; border-radius: 50%; border: 2px solid {{ status_color }}; opacity: 0.3; animation: pulse-glow 2s infinite;">
+                            style="position: absolute; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--sc); opacity: 0.3; animation: pulse-glow 2s infinite;">
                         </div>
                     </div>
                     <span style="font-weight: 800; font-size: 1.3rem; color: var(--dark); letter-spacing: -0.02em;">{{

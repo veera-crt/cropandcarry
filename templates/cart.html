@@ -41,15 +41,15 @@
                         style="display: flex; align-items: center;">
                         <input type="hidden" name="product_id" value="{{ item.product.id }}">
                         <button type="button"
-                            onclick="const input = this.parentNode.querySelector('input[name=quantity]'); if(parseInt(input.value) > 1) { input.value = parseInt(input.value)-1; this.form.submit(); }"
+                            onclick="var inp = this.parentNode.querySelector('input[name=quantity]'); if(parseInt(inp.value) > 1) { inp.value = parseInt(inp.value)-1; this.form.submit(); }"
                             style="width: 32px; height: 32px; border-radius: 50%; background: white; border: none; cursor: pointer; color: var(--dark); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-soft);">
                             <i class="fas fa-minus"></i>
                         </button>
                         <input type="number" name="quantity" value="{{ item.quantity }}" min="1"
                             max="{{ item.product.stock }}" readonly
                             style="width: 45px; text-align: center; background: none; border: none; font-weight: 800; font-size: 1rem; color: var(--dark);">
-                        <button type="button"
-                            onclick="const input = this.parentNode.querySelector('input[name=quantity]'); if(parseInt(input.value) < {{ item.product.stock }}) { input.value = parseInt(input.value)+1; this.form.submit(); }"
+                        <button type="button" data-max="{{ item.product.stock }}"
+                            onclick="var inp = this.parentNode.querySelector('input[name=quantity]'); if(parseInt(inp.value) < parseInt(this.dataset.max)) { inp.value = parseInt(inp.value)+1; this.form.submit(); }"
                             style="width: 32px; height: 32px; border-radius: 50%; background: var(--dark); border: none; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-soft);">
                             <i class="fas fa-plus"></i>
                         </button>

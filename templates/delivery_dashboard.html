@@ -146,14 +146,8 @@
                             {{ order.drop_address }}
                         </td>
                         <td style="padding: 1.5rem;">
-                            {% set status_bg = 'var(--light)' %}
-                            {% set status_fg = 'var(--text-muted)' %}
-                            {% if order.status == 'Delivered' %}
-                            {% set status_bg = 'var(--primary-light)' %}
-                            {% set status_fg = 'var(--primary-dark)' %}
-                            {% endif %}
                             <span class="badge"
-                                style="background: {{ status_bg }}; color: {{ status_fg }}; font-size: 0.8rem; font-weight: 800;">
+                                style="--bg: {% if order.status == 'Delivered' %}var(--primary-light){% else %}var(--light){% endif %}; --fg: {% if order.status == 'Delivered' %}var(--primary-dark){% else %}var(--text-muted){% endif %}; background: var(--bg); color: var(--fg); font-size: 0.8rem; font-weight: 800;">
                                 {{ order.status }}
                             </span>
                         </td>
