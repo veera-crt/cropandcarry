@@ -3,7 +3,7 @@
 {% block content %}
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
     <h1>Delivery Partner Dashboard</h1>
-    <span class="badge" id="live-status"
+    <span class="badge" id="live-status" data-count="{{ available|length }}"
         style="background: var(--light); color: var(--dark); border-radius: 50px; padding: 0.5rem 1rem;">
         <i class="fas fa-circle"
             style="color: #2ecc71; font-size: 0.6rem; vertical-align: middle; margin-right: 5px;"></i>
@@ -13,21 +13,20 @@
 
 <script>
     // Real-time polling for new orders
-    let currentCount = {{ available| length }};
-
     function checkNewOrders() {
+        const badge = document.getElementById('live-status');
+        const currentCount = parseInt(badge.dataset.count);
+
         fetch('/api/delivery/available')
             .then(response => response.json())
             .then(data => {
                 if (data.count !== currentCount) {
-                    // New orders available or orders taken, refresh to update UI
                     location.reload();
                 }
             })
             .catch(err => console.error('Error polling orders:', err));
     }
 
-    // Check every 5 seconds
     setInterval(checkNewOrders, 5000);
 </script>
 
