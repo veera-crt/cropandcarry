@@ -11,34 +11,40 @@
 </head>
 
 <body>
-    <nav class="navbar">
-        <div class="logo"><a href="{{ url_for('index') }}">Crop & Carry</a></div>
+    <nav class="navbar animate-up">
+        <div class="logo">
+            <a href="{{ url_for('index') }}">
+                <i class="fas fa-leaf"></i>
+                <span>Crop & Carry</span>
+            </a>
+        </div>
         <ul class="nav-links">
             <li><a href="{{ url_for('index') }}">Market</a></li>
             {% if current_user.is_authenticated %}
             <li><a href="{{ url_for('profile') }}" class="btn-dashboard"
-                    style="background: var(--light); color: var(--text) !important; display: flex; align-items: center; gap: 0.5rem;">
+                    style="background: var(--light); color: var(--text-main) !important; display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--glass-border);">
                     <span
-                        style="width: 20px; height: 20px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem;">{{
+                        style="width: 24px; height: 24px; background: var(--grad-primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800;">{{
                         current_user.name[0].upper() }}</span>
                     {{ current_user.name }}
                 </a></li>
             <li><a href="{{ url_for('dashboard') }}">Dashboard ({{ current_user.role|title }})</a></li>
             {% if current_user.role == 'consumer' %}
-            <li><a href="{{ url_for('view_cart') }}"
-                    class="{{ 'blink-animation' if session.get('cart') else '' }}">Cart</a></li>
+            <li><a href="{{ url_for('view_cart') }}" class="{{ 'blink-animation' if session.get('cart') else '' }}">
+                    <i class="fas fa-shopping-basket"></i> Cart
+                </a></li>
             {% endif %}
             <li><a href="{{ url_for('logout') }}" class="btn-logout">Logout</a></li>
             {% else %}
             <li><a href="{{ url_for('login') }}">Login</a></li>
-            <li><a href="{{ url_for('signup') }}" class="btn-signup">Sign Up</a></li>
+            <li><a href="{{ url_for('signup') }}" class="btn-signup">Get Started</a></li>
             {% endif %}
         </ul>
-        <div class="hamburger">
+        <button class="hamburger">
             <span></span>
             <span></span>
             <span></span>
-        </div>
+        </button>
     </nav>
 
     <div class="container">
